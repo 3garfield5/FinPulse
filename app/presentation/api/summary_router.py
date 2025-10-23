@@ -14,7 +14,7 @@ def summarize_article(url: str, current_user=Depends(get_current_user)):
     article_text = scraper.extract_text(url)
 
     # Отправляем в LLM для суммаризации
-    llm = OpenAILLMService(api_key="YOUR_OPENAI_KEY")
+    llm = OpenAILLMService(api_key="OPENAI_KEY")
     use_case = SummarizeArticle(llm)
     summary = use_case.execute(article_text)
 

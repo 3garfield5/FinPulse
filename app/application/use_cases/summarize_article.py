@@ -10,7 +10,7 @@ class SummarizeArticle:
     """
 
     def __init__(self, llm_client: Optional[object] = None):
-        self.llm_client = llm_client  # можно потом подставить OpenAI / Gemini и т.д.
+        self.llm_client = llm_client
 
     def execute(self, url: str) -> str:
         try:
@@ -19,7 +19,6 @@ class SummarizeArticle:
                 return "Не удалось получить статью. Проверьте ссылку."
             text = response.text
 
-            # Простейшая "суммаризация" — просто усечение текста
             summary = self._fake_summarize(text)
             return summary
 
