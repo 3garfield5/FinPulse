@@ -44,7 +44,7 @@ export default function Navbar() {
               </div>
             <button 
               onClick={logout} 
-              className="px-3 py-2 rounded-md text-sm font-medium text-gray-700"
+              className="rounded text-sm font-medium text-gray-700"
             >
               Выйти
             </button>

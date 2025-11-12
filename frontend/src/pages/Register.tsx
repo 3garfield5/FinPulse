@@ -21,6 +21,16 @@ export default function Register() {
       <h2 className="text-xl font-semibold mb-4">Регистрация</h2>
       <form onSubmit={submit} className="space-y-4">
         <div>
+          <label className="block text-sm">Имя</label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full border px-3 py-2 rounded"
+            required
+          />
+        </div>
+        <div>
           <label className="block text-sm">Почта</label>
           <input
             type="email"
