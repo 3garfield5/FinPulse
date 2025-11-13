@@ -39,15 +39,21 @@ export default function Navbar() {
                 <nav className="flex items-center gap-2">
                   <Link to="/chat">Чат</Link>
                   <Link to="/news">Новости</Link>
-                  <Link to="/profile">Профиль</Link>
+                  <Link  to="/profile">Профиль</Link>
+                  <Link 
+                    onClick={logout}
+                    to="/login"
+                  >
+                    Выйти
+                  </Link>
                 </nav>
               </div>
-            <button 
+            {/* <button 
               onClick={logout} 
               className="rounded text-sm font-medium text-gray-700"
             >
               Выйти
-            </button>
+            </button> */}
           </>
         ) : (
           <>
