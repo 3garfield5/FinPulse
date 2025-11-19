@@ -1,13 +1,15 @@
 from datetime import datetime, timedelta
-from jose import jwt, JWTError
-from fastapi import Depends, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from app.core.settings import settings
+from fastapi import Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
+
 from app.application.interfaces.user import IUserRepository
+from app.core.settings import settings
 from app.infrastructure.dependencies import get_user_repo
 
 bearer_scheme = HTTPBearer()
+
 
 def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=1)):
     to_encode = data.copy()
@@ -17,8 +19,7 @@ def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=1
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-    repo: IUserRepository = Depends(get_user_repo)
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme), repo: IUserRepository = Depends(get_user_repo)
 ):
     token = credentials.credentials
 
@@ -36,4 +37,3 @@ def get_current_user(
 
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
-    

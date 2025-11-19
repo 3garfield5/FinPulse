@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import List
+
 from pydantic import BaseModel, EmailStr, constr
 
 
@@ -9,11 +10,12 @@ class MarketEnum(str, Enum):
     europe = "europe"
     asia = "asia"
 
+
 class CategoryEnum(str, Enum):
-    macro = "macro"         # Макроэкономика
-    stocks = "stocks"       # Акции
-    fx = "fx"               # Валюта
-    crypto = "crypto"       # Криптовалюта
+    macro = "macro"  # Макроэкономика
+    stocks = "stocks"  # Акции
+    fx = "fx"  # Валюта
+    crypto = "crypto"  # Криптовалюта
     commodities = "commodities"  # Сырьевой товар
 
 
@@ -31,7 +33,7 @@ class RegisterIn(BaseModel):
                 "email": "mat@example.com",
                 "password": "123456",
                 "markets": ["russia", "usa"],
-                "categories": ["macro", "crypto"]
+                "categories": ["macro", "crypto"],
             },
             "description": """
                 Доступные рынки:
@@ -39,12 +41,14 @@ class RegisterIn(BaseModel):
                 - usa → США
                 - europe → Европа
                 - asia → Азия
-                """
+                """,
         }
+
 
 class LoginIn(BaseModel):
     email: EmailStr
     password: constr(min_length=6)
+
 
 class TokenOut(BaseModel):
     access_token: str

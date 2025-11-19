@@ -1,10 +1,11 @@
-from typing import List
-from sqlalchemy.orm import sessionmaker
 from datetime import datetime
+from typing import List
 
+from sqlalchemy.orm import sessionmaker
+
+from app.domain.entities.chat_message import ChatMessage
 from app.infrastructure.database.base import SessionLocal
 from app.infrastructure.database.models import ChatMessageModel
-from app.domain.entities.chat_message import ChatMessage 
 
 
 class ChatRepositorySQL:

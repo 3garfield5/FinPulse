@@ -1,5 +1,6 @@
-from app.application.interfaces.user import IUserRepository
 from hashlib import sha256
+
+from app.application.interfaces.user import IUserRepository
 from app.domain.entities.user import User
 
 
@@ -12,7 +13,7 @@ class Login:
         user = self.repo.get_by_email(email)
         if not user:
             return None
-        
+
         password_hash = sha256(password.encode()).hexdigest()
         if user.password_hash != password_hash:
             return None

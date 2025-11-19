@@ -1,7 +1,7 @@
 from app.domain.entities.chat_message import ChatMessage
 
-
 MAX_PROMPT_CHARS = 8000
+
 
 def build_chat_context(messages: list[ChatMessage]) -> str:
     """

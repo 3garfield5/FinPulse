@@ -1,15 +1,15 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.application.use_cases.auth.register import Register
-from app.application.use_cases.auth.login import Login
-from app.infrastructure.database.user_repo_impl import UserRepositorySQL
-from app.infrastructure.security.auth_jwt import create_access_token
 from app.application.interfaces.user import IUserRepository
+from app.application.use_cases.auth.login import Login
+from app.application.use_cases.auth.register import Register
 from app.infrastructure.dependencies import get_user_repo
+from app.infrastructure.security.auth_jwt import create_access_token
 from app.presentation.schemas.auth import LoginIn, RegisterIn, TokenOut
 from app.presentation.schemas.users import UserOut
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
 
 @router.post("/register", response_model=UserOut)
 def register_user(
@@ -29,10 +29,8 @@ def register_user(
         return user
 
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
 
 @router.post("/login", response_model=TokenOut)
 def login_user(
@@ -43,10 +41,7 @@ def login_user(
     user = use_case.execute(email=data.email, password=data.password)
 
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
 
     token = create_access_token({"sub": user.email})
 

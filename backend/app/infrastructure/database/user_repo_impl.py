@@ -1,10 +1,12 @@
 from typing import Optional
+
 from sqlalchemy.orm import sessionmaker
 
-from app.infrastructure.database.base import SessionLocal
-from app.infrastructure.database.models import UserModel
 from app.application.interfaces.user import IUserRepository
 from app.domain.entities.user import User
+from app.infrastructure.database.base import SessionLocal
+from app.infrastructure.database.models import UserModel
+
 
 class UserRepositorySQL(IUserRepository):
     def __init__(self, session_factory: sessionmaker = SessionLocal):
@@ -27,7 +29,7 @@ class UserRepositorySQL(IUserRepository):
             session.add(db_user)
             session.commit()
             session.refresh(db_user)
-            
+
             user.id = db_user.id
             return user
 
@@ -45,15 +47,14 @@ class UserRepositorySQL(IUserRepository):
                 markets=db_user.markets,
                 categories=db_user.categories,
             )
-        
+
     def delete(self, id: int) -> bool:
         with self._session_factory() as session:
             db_user = session.query(UserModel).filter_by(id=id).first()
             if db_user is None:
                 return False
-            
+
             session.delete(db_user)
             session.commit()
 
             return True
-            

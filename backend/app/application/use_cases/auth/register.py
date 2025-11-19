@@ -1,8 +1,9 @@
 from hashlib import sha256
-from app.domain.entities.user import User
-from app.application.interfaces.user import IUserRepository
 from typing import List
-from app.presentation.schemas.auth import MarketEnum, CategoryEnum
+
+from app.application.interfaces.user import IUserRepository
+from app.domain.entities.user import User
+from app.presentation.schemas.auth import CategoryEnum, MarketEnum
 
 
 class Register:

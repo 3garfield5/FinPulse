@@ -1,7 +1,9 @@
 from typing import List
+
 from pydantic import BaseModel
 
 from app.presentation.schemas.auth import CategoryEnum, MarketEnum
+
 
 class UserOut(BaseModel):
     id: int
