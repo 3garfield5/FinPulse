@@ -1,10 +1,10 @@
 # app/application/use_cases/login_user.py
-from app.domain.repositories.user_repository import IUserRepository
+from app.application.interfaces.user import IUserRepository
 from hashlib import sha256
 from app.domain.entities.user import User
 
 
-class LoginUser:
+class Login:
     def __init__(self, repo: IUserRepository):
         self.repo = repo
 

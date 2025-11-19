@@ -1,6 +1,6 @@
 # infrastructure/external/llm_openai_service.py
 import openai
-from app.domain.services.llm_service import ILLMService
+from app.application.interfaces.llm import ILLMService
 
 class OpenAILLMService(ILLMService):
     def __init__(self, api_key: str):

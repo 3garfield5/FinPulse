@@ -6,7 +6,6 @@ from bs4 import BeautifulSoup
 class ScraperService:
     """
     Сервис для получения и очистки текста статьи по URL.
-    Используется в use case SummarizeArticle.
     """
 
     def fetch_article_text(self, url: str) -> str:

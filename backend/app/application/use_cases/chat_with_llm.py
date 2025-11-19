@@ -1,5 +1,5 @@
 # application/use_cases/chat_with_llm.py
-from app.domain.services.llm_service import ILLMService
+from app.application.interfaces.llm import ILLMService
 
 class ChatWithLLM:
     def __init__(self, llm: ILLMService):

@@ -5,6 +5,6 @@ from datetime import datetime
 class ChatMessage:
     id: int | None
     user_id: int
-    role: str  # 'user' | 'assistant'
+    role: str  # 'user' | 'FinPulse'
     content: str
     timestamp: datetime
