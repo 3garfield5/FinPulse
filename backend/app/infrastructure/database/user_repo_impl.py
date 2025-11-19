@@ -1,4 +1,3 @@
-from hashlib import sha256
 from typing import Optional
 from sqlalchemy.orm import sessionmaker
 

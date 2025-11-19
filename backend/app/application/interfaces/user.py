@@ -1,4 +1,3 @@
-# domain/repositories/user_repository.py
 from abc import ABC, abstractmethod
 from app.domain.entities.user import User
 

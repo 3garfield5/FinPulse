@@ -1,4 +1,3 @@
-# app/application/use_cases/summarize_article.py
 from typing import Optional
 import requests
 

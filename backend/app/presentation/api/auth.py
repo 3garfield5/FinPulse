@@ -1,4 +1,3 @@
-# app/presentation/api/auth_router.py
 from fastapi import APIRouter, HTTPException, Depends, status
 
 from app.application.use_cases.register import Register

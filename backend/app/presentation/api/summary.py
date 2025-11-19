@@ -1,4 +1,3 @@
-# app/presentation/api/summary_router.py
 from fastapi import APIRouter, Depends
 from app.application.use_cases.summarize_article import SummarizeArticle
 from app.infrastructure.external.llm_openai_service import OpenAILLMService

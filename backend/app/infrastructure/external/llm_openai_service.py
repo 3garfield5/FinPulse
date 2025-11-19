@@ -1,4 +1,3 @@
-# infrastructure/external/llm_openai_service.py
 import openai
 from app.application.interfaces.llm import ILLMService
 

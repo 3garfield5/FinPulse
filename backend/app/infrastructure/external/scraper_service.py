@@ -1,4 +1,3 @@
-# app/infrastructure/external/scraper_service.py
 import requests
 from bs4 import BeautifulSoup
 

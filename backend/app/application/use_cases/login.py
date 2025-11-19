@@ -1,4 +1,3 @@
-# app/application/use_cases/login_user.py
 from app.application.interfaces.user import IUserRepository
 from hashlib import sha256
 from app.domain.entities.user import User
