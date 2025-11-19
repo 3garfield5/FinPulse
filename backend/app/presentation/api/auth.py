@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 
-from app.application.use_cases.register import Register
-from app.application.use_cases.login import Login
+from app.application.use_cases.auth.register import Register
+from app.application.use_cases.auth.login import Login
 from app.infrastructure.database.user_repo_impl import UserRepositorySQL
 from app.infrastructure.security.auth_jwt import create_access_token
 from app.application.interfaces.user import IUserRepository

@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Integer, String, ARRAY
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, CheckConstraint, func, ARRAY
 from app.infrastructure.database.base import Base
-
 
 class UserModel(Base):
     __tablename__ = "users"
@@ -12,3 +11,17 @@ class UserModel(Base):
 
     markets = Column(ARRAY(String), nullable=False)
     categories = Column(ARRAY(String), nullable=False)
+
+class ChatMessageModel(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+
+    role = Column(String(20), nullable=False)
+    content = Column(Text, nullable=False)
+    timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    __table_args__ = (
+        CheckConstraint("role IN ('user', 'FinPulse')", name="chat_messages_role_check"),
+    )

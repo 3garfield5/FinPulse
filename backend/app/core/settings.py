@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     SECRET_KEY: str
     ALGORITHM: str
     
+    LLM: str
+    
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
