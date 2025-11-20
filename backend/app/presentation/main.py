@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.infrastructure.middleware import ErrorHandlingMiddleware, LoggingMiddleware
 from app.presentation.api.auth import router as auth_router
 from app.presentation.api.chat import router as chat_router
+from app.presentation.api.meta import router as options_router
 from app.presentation.api.profile import router as profile_router
 from app.presentation.api.summary import router as summary_router
 
@@ -32,6 +33,7 @@ app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(summary_router)
 app.include_router(profile_router)
+app.include_router(options_router)
 
 
 @app.get("/")

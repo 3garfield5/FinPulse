@@ -1,10 +1,8 @@
 from pydantic import BaseModel
 
 
-class ArticleUrlIn(BaseModel):
+class NewsBlockOut(BaseModel):
+    title: str
+    source: str
     url: str
-
-
-class ArticleSummaryOut(BaseModel):
-    text: str
     summary: str

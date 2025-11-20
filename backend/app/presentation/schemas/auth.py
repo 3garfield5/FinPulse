@@ -1,7 +1,9 @@
 from enum import Enum
 from typing import List
 
-from pydantic import BaseModel, EmailStr, constr
+from pydantic import BaseModel, EmailStr, constr, field_validator
+
+from app.core.constants import ALLOWED_CATEGORIES, ALLOWED_MARKETS
 
 
 class MarketEnum(str, Enum):
@@ -27,7 +29,7 @@ class RegisterIn(BaseModel):
     categories: List[CategoryEnum]
 
     class Config:
-        schema_extra = {
+        json_schema_extra = {
             "example": {
                 "name": "Matvey",
                 "email": "mat@example.com",
@@ -35,14 +37,25 @@ class RegisterIn(BaseModel):
                 "markets": ["russia", "usa"],
                 "categories": ["macro", "crypto"],
             },
-            "description": """
-                Доступные рынки:
-                - russia → Россия
-                - usa → США
-                - europe → Европа
-                - asia → Азия
-                """,
         }
+
+    @field_validator("markets")
+    @classmethod
+    def validate_markets(cls, v: list[str]) -> list[str]:
+        unknown = set(v) - set(ALLOWED_MARKETS)
+        if unknown:
+            raise ValueError(f"Неизвестные рынки: {', '.join(unknown)}. " f"Допустимые: {', '.join(ALLOWED_MARKETS)}")
+        return v
+
+    @field_validator("categories")
+    @classmethod
+    def validate_categories(cls, v: list[str]) -> list[str]:
+        unknown = set(v) - set(ALLOWED_CATEGORIES)
+        if unknown:
+            raise ValueError(
+                f"Неизвестные категории: {', '.join(unknown)}. " f"Допустимые: {', '.join(ALLOWED_CATEGORIES)}"
+            )
+        return v
 
 
 class LoginIn(BaseModel):

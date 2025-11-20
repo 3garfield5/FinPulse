@@ -58,3 +58,34 @@ class UserRepositorySQL(IUserRepository):
             session.commit()
 
             return True
+
+    def update(self, user: User) -> User:
+        with self._session_factory() as session:
+            db_user = session.query(UserModel).filter_by(id=user.id).first()
+            if not db_user:
+                raise ValueError("User not found")
+
+            db_user.name = user.name
+            db_user.email = user.email
+            db_user.password_hash = user.password_hash
+            db_user.markets = user.markets
+            db_user.categories = user.categories
+
+            session.commit()
+            session.refresh(db_user)
+            return user
+
+    def get_by_id(self, id: int) -> Optional[User]:
+        with self._session_factory() as session:
+            db_user = session.query(UserModel).filter_by(id=id).first()
+            if db_user is None:
+                return None
+
+            return User(
+                id=db_user.id,
+                name=db_user.name,
+                email=db_user.email,
+                password_hash=db_user.password_hash,
+                markets=db_user.markets,
+                categories=db_user.categories,
+            )
