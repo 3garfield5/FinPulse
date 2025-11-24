@@ -1,15 +1,16 @@
 from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from jose import JWTError, jwt
 
 from app.application.interfaces.user import IUserRepository
 from app.application.use_cases.auth.login import Login
 from app.application.use_cases.auth.register import Register
+from app.core.settings import settings
 from app.infrastructure.dependencies import get_user_repo
 from app.infrastructure.security.auth_jwt import create_access_token, create_refresh_token, get_current_user
 from app.presentation.schemas.auth import LoginIn, RefreshIn, RegisterIn, TokenOut
 from app.presentation.schemas.users import UserOut
-from app.core.settings import settings
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -99,9 +100,10 @@ def refresh_tokens(
         refresh_token=new_refresh_token,
     )
 
+
 @router.post("/logout")
 def logout_user(
-    current_user = Depends(get_current_user),
+    current_user=Depends(get_current_user),
     repo: IUserRepository = Depends(get_user_repo),
 ):
     repo.update_refresh_token(
@@ -110,4 +112,3 @@ def logout_user(
         expires_at=None,
     )
     return {"detail": "Logged out"}
-

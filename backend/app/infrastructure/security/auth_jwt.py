@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -38,15 +38,11 @@ def create_refresh_token(email: str):
     return token, expires_at
 
 
-
 def decode_token(token: str):
     try:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError as e:
-        raise HTTPException(
-            status_code=401,
-            detail=f"Invalid token: {e}"
-        )
+        raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
 
 
 def get_current_user(

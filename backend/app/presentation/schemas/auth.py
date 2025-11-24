@@ -62,6 +62,7 @@ class LoginIn(BaseModel):
     email: EmailStr
     password: constr(min_length=6)
 
+
 class RefreshIn(BaseModel):
     refresh_token: str
 
