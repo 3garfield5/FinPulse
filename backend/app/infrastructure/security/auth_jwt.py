@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -11,29 +11,60 @@ from app.infrastructure.dependencies import get_user_repo
 bearer_scheme = HTTPBearer()
 
 
-def create_access_token(data: dict, expires_delta: timedelta = timedelta(hours=1)):
+def _create_token(data: dict, expires_delta: timedelta):
     to_encode = data.copy()
     expire = datetime.utcnow() + expires_delta
+
+    if "sub" in to_encode:
+        to_encode["sub"] = str(to_encode["sub"])
+
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
+def create_access_token(email: str):
+    return _create_token(
+        {"sub": email, "type": "access"},
+        timedelta(minutes=settings.ACCESS_EXPIRE_MINUTES),
+    )
+
+
+def create_refresh_token(email: str):
+    token = _create_token(
+        {"sub": email, "type": "refresh"},
+        timedelta(days=settings.REFRESH_EXPIRE_DAYS),
+    )
+    expires_at = datetime.utcnow() + timedelta(days=settings.REFRESH_EXPIRE_DAYS)
+    return token, expires_at
+
+
+
+def decode_token(token: str):
+    try:
+        return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except JWTError as e:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Invalid token: {e}"
+        )
+
+
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme), repo: IUserRepository = Depends(get_user_repo)
+    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+    repo: IUserRepository = Depends(get_user_repo),
 ):
     token = credentials.credentials
+    payload = decode_token(token)
 
-    try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        email = payload.get("sub")
-        if email is None:
-            raise HTTPException(status_code=401, detail="Invalid token")
+    if payload.get("type") != "access":
+        raise HTTPException(status_code=401, detail="Not an access token")
 
-        user = repo.get_by_email(email)
-        if user is None:
-            raise HTTPException(status_code=401, detail="User not found")
+    email = payload.get("sub")
+    if not email:
+        raise HTTPException(status_code=401, detail="Invalid token payload")
 
-        return user
+    user = repo.get_by_email(email)
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
 
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+    return user

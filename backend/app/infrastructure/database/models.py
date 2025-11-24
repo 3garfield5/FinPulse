@@ -14,6 +14,9 @@ class UserModel(Base):
     markets = Column(ARRAY(String), nullable=False)
     categories = Column(ARRAY(String), nullable=False)
 
+    refresh_token = Column(String, nullable=True)
+    refresh_token_expires_at = Column(DateTime, nullable=True)
+
 
 class ChatMessageModel(Base):
     __tablename__ = "chat_messages"

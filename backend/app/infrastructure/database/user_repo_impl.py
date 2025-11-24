@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from sqlalchemy.orm import sessionmaker
@@ -89,3 +90,21 @@ class UserRepositorySQL(IUserRepository):
                 markets=db_user.markets,
                 categories=db_user.categories,
             )
+        
+    def update_refresh_token(self, user_id: int, refresh_token: str | None, expires_at: datetime | None):
+        with self._session_factory() as session:
+            user = session.query(UserModel).get(user_id)
+            if not user:
+                return
+            user.refresh_token = refresh_token
+            user.refresh_token_expires_at = expires_at
+            session.commit()
+
+    def get_by_refresh_token(self, refresh_token: str) -> UserModel | None:
+        with self._session_factory() as session:
+            return (
+                session.query(UserModel)
+                .filter(UserModel.refresh_token == refresh_token)
+                .first()
+        )
+

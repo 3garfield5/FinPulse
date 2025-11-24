@@ -10,6 +10,8 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str
     ALGORITHM: str
+    ACCESS_EXPIRE_MINUTES: int
+    REFRESH_EXPIRE_DAYS: int
 
     LLM: str
 
