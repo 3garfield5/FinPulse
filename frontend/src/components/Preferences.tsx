@@ -1,43 +1,70 @@
-import React from 'react'
+import { MARKET_LABELS, CATEGORY_LABELS } from "../constants/dicts";
 
 type PreferencesProps = {
-  prefs: { markets: string[]; categories: string[] }
-  setPrefs: React.Dispatch<React.SetStateAction<{ markets: string[]; categories: string[] }>>
-}
+  markets: string[];
+  categories: string[];
+  availableMarkets: string[];
+  availableCategories: string[];
+  onChangeMarkets: (next: string[]) => void;
+  onChangeCategories: (next: string[]) => void;
+  onSave: () => void;
+};
 
-export default function Preferences({prefs, setPrefs}: PreferencesProps){
-  const markets = ['Россия','США','Европа','Азия']
-  const categories = ['Макроэкономика','Акции','Валюта','Криптовалюта','Сырьевой товар']
-
-  const toggle = (field: 'markets' | 'categories', value: string) => {
-    const arr = prefs[field]
-    if(arr.includes(value)) setPrefs({...prefs, [field]: arr.filter(x=>x!==value)})
-    else setPrefs({...prefs, [field]: [...arr, value]})
-  }
+export default function Preferences({
+  markets,
+  categories,
+  availableMarkets,
+  availableCategories,
+  onChangeMarkets,
+  onChangeCategories,
+  onSave,
+}: PreferencesProps) {
+  const toggle = (
+    current: string[],
+    value: string,
+    setter: (next: string[]) => void,
+  ) => {
+    if (current.includes(value)) {
+      setter(current.filter((v) => v !== value));
+    } else {
+      setter([...current, value]);
+    }
+  };
 
   return (
-    <div className="bg-white p-4 rounded shadow-sm">
-      <h4 className="font-semibold mb-2">Предпочтения</h4>
-      <div className="mb-3">
-        <div className="text-sm font-medium mb-1">Рынки</div>
-        <div className="flex flex-wrap gap-2">
-          {markets.map(m => (
-            <button key={m} onClick={()=>toggle('markets', m)} className={`px-2 py-1 text-sm rounded ${prefs.markets.includes(m) ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
-              {m}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div>
-        <div className="text-sm font-medium mb-1">Категории</div>
-        <div className="flex flex-wrap gap-2">
-          {categories.map(c => (
-            <button key={c} onClick={()=>toggle('categories', c)} className={`px-2 py-1 text-sm rounded ${prefs.categories.includes(c) ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}>
-              {c}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="bg-white p-4 rounded shadow">
+      <h3 className="text-xl font-semibold mb-4">Настройки предпочтений</h3>
+
+      <h4 className="font-medium mb-2">Рынки</h4>
+      {availableMarkets.map((m) => (
+        <label key={m} className="flex items-center gap-2 mb-1">
+          <input
+            type="checkbox"
+            checked={markets.includes(m)}
+            onChange={() => toggle(markets, m, onChangeMarkets)}
+          />
+          <span>{MARKET_LABELS[m] ?? m}</span>
+        </label>
+      ))}
+
+      <h4 className="font-medium mt-4 mb-2">Категории</h4>
+      {availableCategories.map((c) => (
+        <label key={c} className="flex items-center gap-2 mb-1">
+          <input
+            type="checkbox"
+            checked={categories.includes(c)}
+            onChange={() => toggle(categories, c, onChangeCategories)}
+          />
+          <span>{CATEGORY_LABELS[c] ?? c}</span>
+        </label>
+      ))}
+
+      <button
+        onClick={onSave}
+        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
+      >
+        Сохранить настройки
+      </button>
     </div>
-  )
+  );
 }
