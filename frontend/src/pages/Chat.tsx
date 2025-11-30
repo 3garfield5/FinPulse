@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+// src/pages/Chat.tsx
+import React, { useEffect, useState } from "react";
 import Message from "../components/Message";
-import { sendChatMessage } from "../api/chat";
+import { sendChatMessage, getChatHistory, ChatHistoryItem } from "../api/chat";
 
 type MessageType = {
   id: number;
@@ -11,26 +12,45 @@ type MessageType = {
 };
 
 export default function Chat() {
-  const [messages, setMessages] = useState<MessageType[]>([
-    {
-      id: 1,
-      author: "FinPulse",
-      text: "Привет! Чем могу помочь?",
-      time: "только что",
-      isBot: true,
-    },
-  ]);
-
-  const [text, setText] = useState<string>("");
+  const [messages, setMessages] = useState<MessageType[]>([]);
+  const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+  const [isTyping, setIsTyping] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const formatTime = () =>
-    new Date().toLocaleTimeString("ru-RU", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const formatTime = (date?: Date) => {
+    const d = date ?? new Date();
+    return d.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+  };
 
+  // Подгружаем историю
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const history = await getChatHistory(50);
+
+        const mapped: MessageType[] = history.map((h) => ({
+          id: h.id,
+          author: h.role === "FinPulse" ? "FinPulse" : "Пользователь",
+          text: h.content,
+          time: formatTime(new Date(h.created_at)),
+          isBot: h.role === "FinPulse",
+        }));
+
+        setMessages(mapped);
+      } catch (err) {
+        console.error("Ошибка загрузки истории", err);
+        setErrorMsg("Не удалось загрузить историю чата");
+      } finally {
+        setLoadingHistory(false);
+      }
+    };
+
+    loadHistory();
+  }, []);
+
+  // Отправка сообщения
   const send = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim() || loading) return;
@@ -47,10 +67,10 @@ export default function Chat() {
       isBot: false,
     };
 
-    // сначала добавляем сообщение пользователя
     setMessages((prev) => [...prev, userMessage]);
-
     setLoading(true);
+    setIsTyping(true);
+
     try {
       const response = await sendChatMessage({ message: userText });
 
@@ -64,19 +84,10 @@ export default function Chat() {
 
       setMessages((prev) => [...prev, botMessage]);
     } catch (err) {
-      console.error(err);
-      setErrorMsg("Не получилось получить ответ от сервера :(");
-
-      const botErrorMessage: MessageType = {
-        id: Date.now() + 2,
-        author: "FinPulse",
-        text: "Кажется, возникла ошибка при запросе к серверу. Попробуй ещё раз чуть позже.",
-        time: formatTime(),
-        isBot: true,
-      };
-
-      setMessages((prev) => [...prev, botErrorMessage]);
+      console.error("Ошибка отправки сообщения", err);
+      setErrorMsg("Не удалось отправить сообщение");
     } finally {
+      setIsTyping(false);
       setLoading(false);
     }
   };
@@ -85,33 +96,32 @@ export default function Chat() {
     <div className="grid md:grid-cols-3 gap-8">
       <div className="md:col-span-2 bg-white p-4 rounded shadow h-[68vh] flex flex-col">
         <div className="overflow-auto mb-4 flex-1 space-y-2">
+          {loadingHistory && <p className="text-sm text-gray-500">Загружаю историю...</p>}
+          {errorMsg && <p className="text-sm text-red-500 mb-2">{errorMsg}</p>}
+
           {messages.map((m) => (
             <Message key={m.id} {...m} />
           ))}
-          {loading && (
-            <div className="text-xs text-gray-500 mt-2">
-              FinPulse печатает...
+
+          {/* 🔥 Индикатор печати */}
+          {isTyping && (
+            <div className="text-sm text-gray-500 italic px-2 py-1">
+              FinPulse печатает…
             </div>
-          )}
-          {errorMsg && (
-            <div className="text-xs text-red-500 mt-2">{errorMsg}</div>
           )}
         </div>
 
         <form onSubmit={send} className="flex gap-2">
           <input
             value={text}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              setText(e.target.value)
-            }
+            onChange={(e) => setText(e.target.value)}
             placeholder="Сообщение..."
             className="flex-1 border rounded px-3 py-2"
-            disabled={loading}
           />
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-60"
             disabled={loading}
+            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-60"
           >
             {loading ? "Отправка..." : "Отправить"}
           </button>
@@ -119,11 +129,13 @@ export default function Chat() {
       </div>
 
       <aside className="bg-white p-4 rounded shadow">
-        <h4 className="font-semibold mb-2">Последние уведомления</h4>
+        <h3 className="font-semibold mb-2">Рекомендации от FinPulse</h3>
+        <h4 className="font-semibold mb-2">Советы FinPulse</h4>
         <ul className="text-sm text-gray-700 space-y-2">
-          <li>AAPL выросла на 3.2%</li>
-          <li>SBER вырос на 4 пункта!</li>
-          <li>Bitcoin +5.8%</li>
+          <li>• Следите за новостями по вашему портфелю</li>
+          <li>• Избегайте эмоциональных сделок</li>
+          <li>• Перепроверяйте источники</li>
+          <li>• Фиксируйте свои торговые решения</li>
         </ul>
       </aside>
     </div>

@@ -1,19 +1,26 @@
-import React from "react"
+// src/components/Message.tsx
+import React from "react";
 
-type MessageProps = {
-  author: string
-  text: string
-  time: string
-  isBot: boolean
-}
+type Props = {
+  id: number;
+  author: string;
+  text: string;
+  time: string;
+  isBot: boolean;
+};
 
-export default function Message({author, text, time, isBot}: MessageProps){
+export default function Message({ author, text, time, isBot }: Props) {
+  const wrapperAlign = isBot ? "justify-start" : "justify-end";
+  const bubbleBg = isBot ? "bg-gray-100 text-gray-900" : "bg-blue-600 text-white";
+
   return (
-    <div className={`flex ${isBot ? 'justify-start' : 'justify-end'} mb-3`}>
-      <div className={`${isBot ? 'bg-white border' : 'bg-blue-600 text-white'} max-w-[70%] p-3 rounded-lg shadow-sm`}>
-        <div className="text-xs text-black-500 mb-1">{author} • {time}</div>
-        <div className="text-sm">{text}</div>
+    <div className={`flex ${wrapperAlign}`}>
+      <div className={`max-w-xl rounded-lg px-3 py-2 ${bubbleBg}`}>
+        <div className="text-xs opacity-70 mb-1">
+          {author} • {time}
+        </div>
+        <div className="text-sm whitespace-pre-wrap">{text}</div>
       </div>
     </div>
-  )
+  );
 }

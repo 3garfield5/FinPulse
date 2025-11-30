@@ -34,9 +34,10 @@ export default function Landing() {
         <div className="bg-white p-6 rounded-xl shadow-md">
           <h3 className="font-semibold mb-3 text-gray-800">FinPulse Bot — Онлайн</h3>
           <div className="space-y-2 text-sm text-gray-700">
-            <div>AAPL выросла на 3.2% после объявления новых продуктов</div>
-            <div>Обнаружен спам в канале #trading-signals. Удалено 12 сообщений</div>
-            <div>Bitcoin достиг отметки $45,000. Рост 5.8%</div>
+            <div>• Помогает с составлением финансового портфеля</div>
+            <div>• Подскажет, как действовать в критической ситуации</div>
+            <div>• Формирует персональную выборку новостей</div>
+            <div>FinPulse помогает принимать взвешенные торговые решения быстрее конкурентов.</div>
           </div>
         </div>
       </section>
