@@ -1,3 +1,4 @@
+// src/context/AuthContext.tsx
 import React, {
   createContext,
   useContext,
@@ -14,6 +15,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   accessToken: string | null;
   refreshToken: string | null;
+  /** флаг: уже прочитали состояние из localStorage и инициализировались */
+  isAuthReady: boolean;
   setTokens: (tokens: Tokens) => void;
   setIsAuthenticated: (value: boolean) => void;
   logout: () => void;
@@ -27,17 +30,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthReady, setIsAuthReady] = useState(false); // <-- новый флаг
 
-  // подтягиваем состояние из localStorage при первой загрузке
+  // Инициализация из localStorage при первой загрузке
   useEffect(() => {
-    const stored = localStorage.getItem("auth_tokens");
-    if (stored) {
-      const parsed: Tokens = JSON.parse(stored);
-      if (parsed.accessToken) {
-        setAccessToken(parsed.accessToken);
-        setRefreshToken(parsed.refreshToken);
-        setIsAuthenticated(true);
+    try {
+      const stored = localStorage.getItem("auth_tokens");
+      if (stored) {
+        const parsed: Tokens = JSON.parse(stored);
+        if (parsed.accessToken) {
+          setAccessToken(parsed.accessToken);
+          setRefreshToken(parsed.refreshToken);
+          setIsAuthenticated(true);
+        } else {
+          setAccessToken(null);
+          setRefreshToken(null);
+          setIsAuthenticated(false);
+        }
+      } else {
+        setAccessToken(null);
+        setRefreshToken(null);
+        setIsAuthenticated(false);
       }
+    } catch (e) {
+      // На всякий случай чистим при кривых данных
+      console.error("Ошибка чтения auth_tokens из localStorage:", e);
+      localStorage.removeItem("auth_tokens");
+      setAccessToken(null);
+      setRefreshToken(null);
+      setIsAuthenticated(false);
+    } finally {
+      setIsAuthReady(true); // <-- говорим, что инициализация завершена
     }
   }, []);
 
@@ -56,7 +79,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = () => {
     setTokens({ accessToken: null, refreshToken: null });
-    setIsAuthenticated(false);
   };
 
   return (
@@ -65,6 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         isAuthenticated,
         accessToken,
         refreshToken,
+        isAuthReady,
         setTokens,
         setIsAuthenticated,
         logout,

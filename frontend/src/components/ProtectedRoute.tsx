@@ -1,18 +1,29 @@
+// src/components/ProtectedRoute.tsx
+import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-interface Props {
-  children: JSX.Element;
-}
+type Props = {
+  children: React.ReactNode;
+};
 
-export default function ProtectedRoute({ children }: Props) {
-  const { isAuthenticated } = useAuth();
+const ProtectedRoute: React.FC<Props> = ({ children }) => {
+  const { isAuthenticated, isAuthReady } = useAuth();
 
-  console.log("ProtectedRoute isAuthenticated =", isAuthenticated);
+  // Пока не знаем, авторизован ли юзер — вообще ничего не делаем / показываем лоадер
+  if (!isAuthReady) {
+    return (
+      <div className="flex items-center justify-center h-64 text-gray-500 text-sm">
+        Загрузка...
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  return children;
-}
+  return <>{children}</>;
+};
+
+export default ProtectedRoute;

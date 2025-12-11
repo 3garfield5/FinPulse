@@ -1,37 +1,42 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { registerUser } from "../api/auth";
-import { getMetaOptions } from "../api/meta";
+import { api } from "../api/client";
+import { MARKET_LABELS, CATEGORY_LABELS } from "../constants/dicts";
 
-export default function Register() {
+type MetaOptions = {
+  markets: string[];
+  categories: string[];
+};
+
+const Register: React.FC = () => {
+  const navigate = useNavigate();
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
 
-  const [markets, setMarkets] = useState<string[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [options, setOptions] = useState<MetaOptions>({
+    markets: [],
+    categories: [],
+  });
 
-  const [availableMarkets, setAvailableMarkets] = useState<string[]>([]);
-  const [availableCategories, setAvailableCategories] = useState<string[]>([]);
+  const [selectedMarkets, setSelectedMarkets] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
-  const [error, setError] = useState<string | null>(null);
-  const [loadingOptions, setLoadingOptions] = useState(false);
+  const [loadingOptions, setLoadingOptions] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const navigate = useNavigate();
-
-  // Загружаем доступные markets / categories
+  // 1) подтягиваем разрешённые markets/categories с бэка
   useEffect(() => {
     const loadOptions = async () => {
       try {
-        setLoadingOptions(true);
-        const data = await getMetaOptions();
-        setAvailableMarkets(data.markets);
-        setAvailableCategories(data.categories);
-      } catch (e) {
-        console.error(e);
-        setError("Не удалось загрузить списки рынков и категорий");
+        const res = await api.get<MetaOptions>("/meta/options");
+        setOptions(res.data);
+      } catch (err) {
+        console.error("Ошибка загрузки /meta/options", err);
+        setErrorMsg("Не удалось загрузить настройки рынков и категорий");
       } finally {
         setLoadingOptions(false);
       }
@@ -40,53 +45,76 @@ export default function Register() {
     loadOptions();
   }, []);
 
-  const toggleMarket = (value: string) => {
-    setMarkets((prev) =>
-      prev.includes(value) ? prev.filter((m) => m !== value) : [...prev, value]
+  const toggleMarket = (code: string) => {
+    setSelectedMarkets((prev) =>
+      prev.includes(code) ? prev.filter((m) => m !== code) : [...prev, code]
     );
   };
 
-  const toggleCategory = (value: string) => {
-    setCategories((prev) =>
-      prev.includes(value) ? prev.filter((c) => c !== value) : [...prev, value]
+  const toggleCategory = (code: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code]
     );
   };
 
-  const submit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
 
     if (password !== confirm) {
-      setError("Пароли не совпадают");
+      setErrorMsg("Пароли не совпадают");
       return;
     }
 
+    if (!name.trim()) {
+      setErrorMsg("Введите имя");
+      return;
+    }
+
+    setErrorMsg(null);
+    setSubmitting(true);
+
     try {
-      await registerUser({
+      await api.post("/auth/register", {
         name,
         email,
         password,
-        markets,
-        categories,
+        markets: selectedMarkets,       // ← EN-коды, как ждёт бэк
+        categories: selectedCategories, // ← EN-коды, как ждёт бэк
       });
 
+      // после успешной регистрации — на логин
       navigate("/login");
     } catch (err: any) {
-      const detail = err?.response?.data?.detail || "Ошибка регистрации";
-      setError(detail);
+      console.error("Ошибка регистрации", err);
+      // пробуем вытащить detail из ответа FastAPI
+      const detail =
+        err?.response?.data?.detail ||
+        "Не удалось зарегистрироваться. Попробуйте ещё раз.";
+      setErrorMsg(
+        Array.isArray(detail)
+          ? detail.map((d: any) => d.msg || JSON.stringify(d)).join("; ")
+          : String(detail)
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-6 rounded shadow">
+    <div className="max-w-xl mx-auto bg-white p-6 rounded shadow">
       <h2 className="text-xl font-semibold mb-4">Регистрация</h2>
 
-      <form onSubmit={submit} className="space-y-4">
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+      {errorMsg && (
+        <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded">
+          {errorMsg}
+        </div>
+      )}
 
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm mb-1">Имя</label>
           <input
+            type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full border px-3 py-2 rounded"
@@ -117,7 +145,7 @@ export default function Register() {
         </div>
 
         <div>
-          <label className="block text-sm mb-1">Подтверждение пароля</label>
+          <label className="block text-sm mb-1">Подтвердите пароль</label>
           <input
             type="password"
             value={confirm}
@@ -127,71 +155,72 @@ export default function Register() {
           />
         </div>
 
-        {/* Маркеты */}
+        {/* Рынки */}
         <div>
-          <label className="block text-sm mb-1">Рынки</label>
-          {loadingOptions && (
-            <p className="text-xs text-gray-500">Загружаем варианты…</p>
+          <label className="block text-sm font-medium mb-1">
+            Предпочтительные рынки
+          </label>
+          {loadingOptions ? (
+            <p className="text-sm text-gray-500">Загружаю доступные рынки…</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {options.markets.map((code) => (
+                <label
+                  key={code}
+                  className="flex items-center gap-2 text-sm cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedMarkets.includes(code)}
+                    onChange={() => toggleMarket(code)}
+                  />
+                  <span>{MARKET_LABELS[code] ?? code}</span>
+                </label>
+              ))}
+            </div>
           )}
-          {!loadingOptions && availableMarkets.length === 0 && (
-            <p className="text-xs text-gray-500">
-              Нет доступных рынков (проверь /meta/options)
-            </p>
-          )}
-          <div className="flex flex-wrap gap-2 mt-2">
-            {availableMarkets.map((m) => (
-              <label
-                key={m}
-                className="flex items-center gap-1 text-sm border rounded px-2 py-1 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={markets.includes(m)}
-                  onChange={() => toggleMarket(m)}
-                />
-                <span>{m}</span>
-              </label>
-            ))}
-          </div>
         </div>
 
         {/* Категории */}
         <div>
-          <label className="block text-sm mb-1">Категории новостей</label>
-          {loadingOptions && (
-            <p className="text-xs text-gray-500">Загружаем варианты…</p>
-          )}
-          {!loadingOptions && availableCategories.length === 0 && (
-            <p className="text-xs text-gray-500">
-              Нет доступных категорий (проверь /meta/options)
+          <label className="block text-sm font-medium mb-1">
+            Предпочтительные категории новостей
+          </label>
+          {loadingOptions ? (
+            <p className="text-sm text-gray-500">
+              Загружаю доступные категории…
             </p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {options.categories.map((code) => (
+                <label
+                  key={code}
+                  className="flex items-center gap-2 text-sm cursor-pointer"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedCategories.includes(code)}
+                    onChange={() => toggleCategory(code)}
+                  />
+                  <span>{CATEGORY_LABELS[code] ?? code}</span>
+                </label>
+              ))}
+            </div>
           )}
-          <div className="flex flex-wrap gap-2 mt-2">
-            {availableCategories.map((c) => (
-              <label
-                key={c}
-                className="flex items-center gap-1 text-sm border rounded px-2 py-1 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={categories.includes(c)}
-                  onChange={() => toggleCategory(c)}
-                />
-                <span>{c}</span>
-              </label>
-            ))}
-          </div>
         </div>
 
-        <div className="flex justify-end pt-2">
+        <div className="flex justify-end">
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded"
+            disabled={submitting}
+            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-60"
           >
-            Зарегистрироваться
+            {submitting ? "Регистрирую…" : "Зарегистрироваться"}
           </button>
         </div>
       </form>
     </div>
   );
-}
+};
+
+export default Register;
