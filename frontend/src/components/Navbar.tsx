@@ -31,7 +31,7 @@ export default function Navbar() {
           FinPulse
         </a>
         <span className="text-sm text-gray-500">
-          Умный чат-бот для трейдеров
+          AI-ассистент для трейдеров
         </span>
       </div>
 

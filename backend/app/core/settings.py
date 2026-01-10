@@ -1,7 +1,13 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
@@ -13,11 +19,9 @@ class Settings(BaseSettings):
     ACCESS_EXPIRE_MINUTES: int
     REFRESH_EXPIRE_DAYS: int
 
-    LLM: str
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    LLM_PROVIDER: str
+    OLLAMA_URL: str
+    OLLAMA_MODEL: str
 
 
 settings = Settings()

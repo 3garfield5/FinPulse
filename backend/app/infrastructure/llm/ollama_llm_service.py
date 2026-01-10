@@ -1,17 +1,21 @@
 import requests
+import os
 
 from app.application.interfaces.llm import ILLMService
+from app.core.settings import settings
 
 
 class OllamaLLMService(ILLMService):
-    def __init__(self, model: str = "llama3.2"):
-        self.model = model
-        self.url = "http://localhost:11434/api/generate"
+    def __init__(self):
+        self.model = settings.OLLAMA_MODEL
+
+        base = settings.OLLAMA_URL.rstrip("/")
+        self.url = (
+            base if base.endswith("/api/generate")
+            else f"{base}/api/generate"
+        )
 
     def chat(self, prompt: str, user_context: dict | None = None) -> str:
-        """
-        Отправляет промпт локальной модели Ollama и получает ответ.
-        """
         payload = {
             "model": self.model,
             "prompt": prompt,
@@ -19,11 +23,11 @@ class OllamaLLMService(ILLMService):
         }
 
         try:
-            response = requests.post(self.url, json=payload)
-            response.raise_for_status()
-            data = response.json()
-            return data.get("response", "")
-
+            r = requests.post(self.url, json=payload, timeout=120)
+            if r.status_code >= 400:
+                print("Ollama error:", r.status_code, r.text)
+            r.raise_for_status()
+            return r.json().get("response", "")
         except Exception as e:
             print("Ошибка обращения к Ollama:", e)
             return "Извините, FinPulse временно недоступен."
@@ -36,4 +40,4 @@ class OllamaLLMService(ILLMService):
             "- 1–2 предложения выводов для инвестора.\n\n"
             f"Текст:\n{text}"
         )
-        return self.chat(prompt, {})
+        return self.chat(prompt)

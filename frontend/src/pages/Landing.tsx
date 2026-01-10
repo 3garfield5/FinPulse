@@ -8,11 +8,10 @@ export default function Landing() {
         
         <div>
           <h1 className="text-4xl font-bold text-blue-600 mb-4">
-            FinPulse — Умный чат-бот для трейдеров
+            FinPulse — AI-ассистент для трейдеров и инвесторов российского фондового рынка
           </h1>
           <p className="text-gray-700 mb-6 leading-relaxed">
-            FinPulse собирает и анализирует новости из проверенных источников, 
-            предоставляя трейдерам актуальную информацию и защищая от спама.
+            Объясняет, как новости и события в России могут повлиять на акции и рынок
           </p>
 
           <div className="flex gap-3">
@@ -20,7 +19,7 @@ export default function Landing() {
               to="/chat" 
               className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition"
             >
-              Старт
+              AI-ассистент
             </Link>
             <Link 
               to="/news" 

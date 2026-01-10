@@ -1,4 +1,7 @@
 import logging
+from app.infrastructure.database.base import Base
+from app.infrastructure.database.base import engine
+
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,6 +19,10 @@ logging.basicConfig(
 )
 
 app = FastAPI(title="FinPulse API", version="1.0")
+
+@app.on_event("startup")
+def startup():
+    Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,

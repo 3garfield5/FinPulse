@@ -13,7 +13,7 @@ router = APIRouter(prefix="/chat", tags=["Chat"])
 
 
 def get_llm_service() -> OllamaLLMService:
-    return OllamaLLMService(model=settings.LLM)
+    return OllamaLLMService()
 
 
 def get_chat_repo() -> ChatRepositorySQL:
