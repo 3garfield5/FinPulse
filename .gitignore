@@ -1,3 +1,4 @@
 #settings
 backend/.env
 backend/venv
+.env
