@@ -1,5 +1,7 @@
-from dataclasses import dataclass
-from typing import List
+from dataclasses import dataclass, field
+from typing import List, Optional, Literal
+
+from app.core.constants import MARKET_RU
 
 
 @dataclass
@@ -8,5 +10,12 @@ class User:
     name: str
     email: str
     password_hash: str
-    markets: List[str]
-    categories: List[str]
+
+    market: Literal["RU"] = MARKET_RU
+
+    investment_horizon: Optional[str] = None   # "short" | "mid" | "long"
+    experience_level: Optional[str] = None     # "beginner" | "intermediate" | "pro"
+    risk_level: Optional[str] = None           # "low" | "medium" | "high"
+
+    tickers: List[str] = field(default_factory=list)  # ["SBER", "GAZP", ...]
+    sectors: List[str] = field(default_factory=list)  # ["banks", "oil_gas", ...]

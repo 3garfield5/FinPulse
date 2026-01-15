@@ -1,57 +1,47 @@
-from datetime import datetime, timedelta
-from typing import List, Dict, Tuple
+from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.application.use_cases.summarize_article import GetNewsFeed
 from app.infrastructure.database.user_repo_impl import UserRepositorySQL
-from app.infrastructure.dependencies import get_user_repo
-from app.infrastructure.llm.ollama_llm_service import OllamaLLMService
-from app.infrastructure.llm.scraper_service import ScraperService
+from app.infrastructure.dependencies import get_user_repo, get_news_feed_use_case
 from app.infrastructure.security.auth_jwt import get_current_user
-from app.presentation.api.chat import get_llm_service
-from app.presentation.schemas.summary import NewsBlockOut
+from app.presentation.schemas.summary import NewsBlockOut, NewsIndicatorOut
 
 router = APIRouter(prefix="/news", tags=["News"])
-
-CACHE_TTL = timedelta(minutes=10)
-
-_news_cache: Dict[int, Tuple[datetime, List[NewsBlockOut]]] = {}
 
 
 @router.get("/feed", response_model=List[NewsBlockOut])
 def get_personal_news_feed(
     current_user=Depends(get_current_user),
     user_repo: UserRepositorySQL = Depends(get_user_repo),
-    llm: OllamaLLMService = Depends(get_llm_service),
+    use_case: GetNewsFeed = Depends(get_news_feed_use_case),
 ):
     user = user_repo.get_by_email(current_user.email)
     if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    now = datetime.utcnow()
+    blocks = use_case.execute(user)
 
-    cached = _news_cache.get(user.id)
-    if cached is not None:
-        ts, blocks = cached
-        if now - ts < CACHE_TTL:
-            return blocks
-
-    scraper = ScraperService()
-    use_case = GetNewsFeed(scraper=scraper, llm=llm)
-
-    domain_blocks = use_case.execute(user)
-
-    blocks: List[NewsBlockOut] = [
+    return [
         NewsBlockOut(
             title=b.title,
             source=b.source,
             url=b.url,
             summary=b.summary,
+            bullets=b.bullets,
+            conclusion=b.conclusion,
+            risks=b.risks,
+            indicator=(
+                NewsIndicatorOut(
+                    impact=b.indicator.impact,
+                    confidence=b.indicator.confidence,
+                    rationale=b.indicator.rationale,
+                )
+                if b.indicator is not None
+                else None
+            ),
+            asof=b.asof,
         )
-        for b in domain_blocks
+        for b in blocks
     ]
-
-    _news_cache[user.id] = (now, blocks)
-
-    return blocks

@@ -23,8 +23,14 @@ class UserRepositorySQL(IUserRepository):
                 name=user.name,
                 email=user.email,
                 password_hash=user.password_hash,
-                markets=user.markets,
-                categories=user.categories,
+
+                # Профиль (MVP)
+                market=user.market,
+                investment_horizon=user.investment_horizon,
+                experience_level=user.experience_level,
+                risk_level=user.risk_level,
+                tickers=user.tickers,
+                sectors=user.sectors,
             )
 
             session.add(db_user)
@@ -40,14 +46,15 @@ class UserRepositorySQL(IUserRepository):
             if db_user is None:
                 return None
 
-            return User(
-                id=db_user.id,
-                name=db_user.name,
-                email=db_user.email,
-                password_hash=db_user.password_hash,
-                markets=db_user.markets,
-                categories=db_user.categories,
-            )
+            return self._to_domain(db_user)
+
+    def get_by_id(self, id: int) -> Optional[User]:
+        with self._session_factory() as session:
+            db_user = session.query(UserModel).filter_by(id=id).first()
+            if db_user is None:
+                return None
+
+            return self._to_domain(db_user)
 
     def delete(self, id: int) -> bool:
         with self._session_factory() as session:
@@ -57,7 +64,6 @@ class UserRepositorySQL(IUserRepository):
 
             session.delete(db_user)
             session.commit()
-
             return True
 
     def update(self, user: User) -> User:
@@ -66,40 +72,57 @@ class UserRepositorySQL(IUserRepository):
             if not db_user:
                 raise ValueError("User not found")
 
+            # базовые поля
             db_user.name = user.name
             db_user.email = user.email
             db_user.password_hash = user.password_hash
-            db_user.markets = user.markets
-            db_user.categories = user.categories
+
+            # профиль (MVP)
+            db_user.market = user.market
+            db_user.investment_horizon = user.investment_horizon
+            db_user.experience_level = user.experience_level
+            db_user.risk_level = user.risk_level
+            db_user.tickers = user.tickers
+            db_user.sectors = user.sectors
 
             session.commit()
             session.refresh(db_user)
             return user
 
-    def get_by_id(self, id: int) -> Optional[User]:
+    def update_refresh_token(
+        self,
+        user_id: int,
+        refresh_token: str | None,
+        expires_at: datetime | None,
+    ):
         with self._session_factory() as session:
-            db_user = session.query(UserModel).filter_by(id=id).first()
-            if db_user is None:
-                return None
-
-            return User(
-                id=db_user.id,
-                name=db_user.name,
-                email=db_user.email,
-                password_hash=db_user.password_hash,
-                markets=db_user.markets,
-                categories=db_user.categories,
-            )
-
-    def update_refresh_token(self, user_id: int, refresh_token: str | None, expires_at: datetime | None):
-        with self._session_factory() as session:
-            user = session.query(UserModel).get(user_id)
-            if not user:
+            db_user = session.query(UserModel).get(user_id)
+            if not db_user:
                 return
-            user.refresh_token = refresh_token
-            user.refresh_token_expires_at = expires_at
+            db_user.refresh_token = refresh_token
+            db_user.refresh_token_expires_at = expires_at
             session.commit()
 
     def get_by_refresh_token(self, refresh_token: str) -> UserModel | None:
         with self._session_factory() as session:
-            return session.query(UserModel).filter(UserModel.refresh_token == refresh_token).first()
+            return (
+                session.query(UserModel)
+                .filter(UserModel.refresh_token == refresh_token)
+                .first()
+            )
+
+    @staticmethod
+    def _to_domain(db_user: UserModel) -> User:
+        return User(
+            id=db_user.id,
+            name=db_user.name,
+            email=db_user.email,
+            password_hash=db_user.password_hash,
+
+            market=db_user.market,
+            investment_horizon=db_user.investment_horizon,
+            experience_level=db_user.experience_level,
+            risk_level=db_user.risk_level,
+            tickers=db_user.tickers or [],
+            sectors=db_user.sectors or [],
+        )

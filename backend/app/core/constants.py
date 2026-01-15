@@ -1,40 +1,46 @@
-ALLOWED_MARKETS = ["russia", "usa", "europe", "asia"]
-ALLOWED_CATEGORIES = ["macro", "stocks", "fx", "crypto", "commodities"]
+from typing import Literal, Dict, List, Set
+import re
 
-NEWS_SOURCES: dict = {
-    "russia": {
-        "macro": [
+CATEGORY_MACRO = "macro"
+CATEGORY_STOCKS = "stocks"
+
+ALLOWED_CATEGORIES: Set[str] = {CATEGORY_MACRO, CATEGORY_STOCKS}
+
+MARKET_RU: Literal["RU"] = "RU"
+ALLOWED_MARKETS: Set[str] = {MARKET_RU}
+
+ALLOWED_HORIZONS: Set[str] = {"short", "mid", "long"}
+ALLOWED_EXPERIENCE: Set[str] = {"beginner", "intermediate", "pro"}
+ALLOWED_RISK: Set[str] = {"low", "medium", "high"}
+
+ALLOWED_SECTORS: Set[str] = {
+    "banks",
+    "oil_gas",
+    "metals_mining",
+    "it",
+    "consumer",
+    "telecom",
+    "utilities",
+    "real_estate",
+    "transport",
+    "industrials",
+    "financials_other",
+}
+
+TICKER_RE = re.compile(r"^[A-Z0-9\.]{2,12}$")
+
+NEWS_SOURCES: Dict[str, Dict[str, List[str]]] = {
+    MARKET_RU: {
+        CATEGORY_MACRO: [
             "https://www.rbc.ru/economics/",
             "https://www.vedomosti.ru/rubrics/economics",
+            "https://www.cbr.ru/press/",
+            "https://minfin.gov.ru/ru/press-center/",
         ],
-        "stocks": [
+        CATEGORY_STOCKS: [
             "https://www.rbc.ru/finances/",
+            "https://www.vedomosti.ru/finance",
+            "https://www.moex.com/ru/news/",
         ],
-        "fx": [
-            "https://www.rbc.ru/tags/?tag=валюта",
-        ],
-        "crypto": [
-            "https://www.rbc.ru/crypto/",
-        ],
-        "commodities": [
-            "https://www.rbc.ru/commodities/",
-        ],
-    },
-    "usa": {
-        "macro": [
-            "https://www.cnbc.com/economy/",
-        ],
-        "stocks": [
-            "https://www.cnbc.com/stocks/",
-        ],
-        "fx": [
-            "https://www.investing.com/currencies/",
-        ],
-        "crypto": [
-            "https://www.coindesk.com/",
-        ],
-        "commodities": [
-            "https://www.investing.com/commodities/",
-        ],
-    },
+    }
 }

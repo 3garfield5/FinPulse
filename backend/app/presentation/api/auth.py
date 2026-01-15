@@ -8,7 +8,11 @@ from app.application.use_cases.auth.login import Login
 from app.application.use_cases.auth.register import Register
 from app.core.settings import settings
 from app.infrastructure.dependencies import get_user_repo
-from app.infrastructure.security.auth_jwt import create_access_token, create_refresh_token, get_current_user
+from app.infrastructure.security.auth_jwt import (
+    create_access_token,
+    create_refresh_token,
+    get_current_user,
+)
 from app.presentation.schemas.auth import LoginIn, RefreshIn, RegisterIn, TokenOut
 from app.presentation.schemas.users import UserOut
 
@@ -27,11 +31,8 @@ def register_user(
             name=data.name,
             email=data.email,
             password=data.password,
-            markets=data.markets,
-            categories=data.categories,
         )
         return user
-
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 

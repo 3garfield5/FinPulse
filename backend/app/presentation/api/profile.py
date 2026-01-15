@@ -1,21 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.application.interfaces.user import IUserRepository
-from app.core.constants import ALLOWED_CATEGORIES, ALLOWED_MARKETS
 from app.infrastructure.dependencies import get_user_repo
 from app.infrastructure.security.auth_jwt import get_current_user
-from app.presentation.schemas.profile import PreferencesUpdate
+from app.presentation.schemas.profile import ProfileUpdate
 from app.presentation.schemas.users import UserOut
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
 
-@router.patch("/preferences", response_model=UserOut)
-def update_preferences(
-    data: PreferencesUpdate,
+@router.patch("", response_model=UserOut)
+def update_profile(
+    data: ProfileUpdate,
     current_user=Depends(get_current_user),
     user_repo: IUserRepository = Depends(get_user_repo),
 ):
+    """
+    Обновление инвестиционного профиля пользователя (MVP).
+    Рынок фиксированный: RU.
+    """
     user = user_repo.get_by_email(current_user.email)
     if not user:
         raise HTTPException(
@@ -23,31 +26,33 @@ def update_preferences(
             detail="User not found",
         )
 
-    if data.markets is not None:
-        invalid = set(data.markets) - set(ALLOWED_MARKETS)
-        if invalid:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Недопустимые рынки: {', '.join(invalid)}",
-            )
-        user.markets = data.markets
+    # Обновляем только те поля, которые пришли (PATCH semantics)
+    payload = data.model_dump(exclude_unset=True, exclude_none=True)
 
-    if data.categories is not None:
-        invalid = set(data.categories) - set(ALLOWED_CATEGORIES)
-        if invalid:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Недопустимые категории: {', '.join(invalid)}",
-            )
-        user.categories = data.categories
+    # market не даём менять даже если пришёл (MVP)
+    payload.pop("market", None)
+
+    # Маппинг полей профиля в модель пользователя.
+    # Важно: названия полей user.* должны совпадать с тем, что у тебя в ORM-модели.
+    if "investment_horizon" in payload:
+        user.investment_horizon = payload["investment_horizon"]
+
+    if "experience_level" in payload:
+        user.experience_level = payload["experience_level"]
+
+    if "risk_level" in payload:
+        user.risk_level = payload["risk_level"]
+
+    if "tickers" in payload:
+        user.tickers = payload["tickers"]
+
+    if "sectors" in payload:
+        user.sectors = payload["sectors"]
 
     user_repo.update(user)
-
     return user
 
 
 @router.get("", response_model=UserOut)
-def profile(
-    current_user=Depends(get_current_user),
-):
+def profile(current_user=Depends(get_current_user)):
     return current_user

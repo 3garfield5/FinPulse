@@ -1,6 +1,18 @@
-from sqlalchemy import ARRAY, CheckConstraint, Column, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import (ARRAY, 
+                        CheckConstraint, 
+                        Column, 
+                        DateTime, 
+                        ForeignKey, 
+                        Integer, 
+                        String, 
+                        Text, 
+                        func,
+                        Date, 
+                        UniqueConstraint)
 
+from app.core.constants import MARKET_RU
 from app.infrastructure.database.base import Base
+
 
 
 class UserModel(Base):
@@ -11,8 +23,14 @@ class UserModel(Base):
     email = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
 
-    markets = Column(ARRAY(String), nullable=False)
-    categories = Column(ARRAY(String), nullable=False)
+    market = Column(String, nullable=False, server_default=MARKET_RU)
+
+    investment_horizon = Column(String, nullable=True)   # short | mid | long
+    experience_level = Column(String, nullable=True)     # beginner | intermediate | pro
+    risk_level = Column(String, nullable=True)           # low | medium | high
+
+    tickers = Column(ARRAY(String), nullable=False, server_default="{}")
+    sectors = Column(ARRAY(String), nullable=False, server_default="{}")
 
     refresh_token = Column(String, nullable=True)
     refresh_token_expires_at = Column(DateTime, nullable=True)
@@ -28,4 +46,27 @@ class ChatMessageModel(Base):
     content = Column(Text, nullable=False)
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
-    __table_args__ = (CheckConstraint("role IN ('user', 'FinPulse')", name="chat_messages_role_check"),)
+    __table_args__ = (
+        CheckConstraint("role IN ('user', 'FinPulse')", name="chat_messages_role_check"),
+    )
+
+class NewsCacheModel(Base):
+    __tablename__ = "news_cache"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    cache_date = Column(Date, nullable=False, index=True)
+    market = Column(String, nullable=False)
+    category = Column(String, nullable=False)
+    url = Column(String, nullable=False)
+    source = Column(String, nullable=False)
+    title = Column(String, nullable=False)
+
+    payload_json = Column(Text, nullable=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("cache_date", "category", "url", name="uq_news_cache_day_cat_url"),
+    )

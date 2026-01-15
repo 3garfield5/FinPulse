@@ -15,7 +15,6 @@ interface AuthContextType {
   isAuthenticated: boolean;
   accessToken: string | null;
   refreshToken: string | null;
-  /** флаг: уже прочитали состояние из localStorage и инициализировались */
   isAuthReady: boolean;
   setTokens: (tokens: Tokens) => void;
   setIsAuthenticated: (value: boolean) => void;
@@ -32,7 +31,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAuthReady, setIsAuthReady] = useState(false); // <-- новый флаг
 
-  // Инициализация из localStorage при первой загрузке
   useEffect(() => {
     try {
       const stored = localStorage.getItem("auth_tokens");

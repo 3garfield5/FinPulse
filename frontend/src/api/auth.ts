@@ -4,8 +4,6 @@ export interface RegisterPayload {
   name: string;
   email: string;
   password: string;
-  markets: string[];
-  categories: string[];
 }
 
 export interface LoginPayload {
@@ -21,6 +19,7 @@ export async function registerUser(data: RegisterPayload) {
 export async function loginUser(data: LoginPayload) {
   const response = await api.post("/auth/login", data);
   const { access_token, refresh_token } = response.data;
+
   setTokens(access_token, refresh_token);
   return response.data;
 }
@@ -28,7 +27,6 @@ export async function loginUser(data: LoginPayload) {
 export async function logoutUser() {
   try {
     await api.post("/auth/logout");
-  } catch {
   } finally {
     clearTokens();
   }

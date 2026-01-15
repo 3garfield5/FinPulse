@@ -5,26 +5,11 @@ from app.application.use_cases.chat.chat_with_llm import ChatWithLLM
 from app.core.settings import settings
 from app.domain.entities.user import User
 from app.infrastructure.database.chat_repo_impl import ChatRepositorySQL
-from app.infrastructure.llm.ollama_llm_service import OllamaLLMService
 from app.infrastructure.security.auth_jwt import get_current_user
 from app.presentation.schemas.chat import ChatIn, ChatMessageOut, ChatOut
+from app.infrastructure.dependencies import get_chat_repo, get_chat_use_case
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
-
-
-def get_llm_service() -> OllamaLLMService:
-    return OllamaLLMService()
-
-
-def get_chat_repo() -> ChatRepositorySQL:
-    return ChatRepositorySQL()
-
-
-def get_chat_use_case(
-    llm: OllamaLLMService = Depends(get_llm_service),
-    repo: ChatRepositorySQL = Depends(get_chat_repo),
-) -> ChatWithLLM:
-    return ChatWithLLM(llm=llm, chat_repo=repo)
 
 
 @router.post("/send", response_model=ChatOut)
