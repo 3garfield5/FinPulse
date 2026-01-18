@@ -20,8 +20,11 @@ from app.infrastructure.llm.scraper_service import ScraperService
 
 _WS_RE = re.compile(r"\s+")
 
+_ALLOWED_IMPACT = {"positive", "neutral", "negative"}
+_ALLOWED_CONFIDENCE = {"low", "medium", "high"}
 
-def _clean_and_truncate(text: str, max_chars: int = 15000) -> str:
+
+def _clean_and_truncate(text: str, max_chars: int = 8000) -> str:
     if not text:
         return ""
     text = _WS_RE.sub(" ", text).strip()
@@ -46,6 +49,17 @@ def _build_summary_text(bullets: List[str], conclusion: Optional[str], risks: Li
     if risks:
         parts.append("\nРиски:\n• " + "\n• ".join(risks))
     return "\n".join(parts).strip()
+
+
+def _norm_choice(x: Optional[str], allowed: set[str]) -> Optional[str]:
+    if not x:
+        return None
+    x = str(x).strip().lower()
+    if x in allowed:
+        return x
+    if "|" in x:
+        return None
+    return None
 
 
 class GetNewsFeed:
@@ -101,8 +115,8 @@ class GetNewsFeed:
             '  "explanation": ["2-4 пункта: почему так / какие механизмы влияния"],\n'
             '  "risks": ["2-4 пункта: риски и неопределенности (не повторять facts)"],\n'
             '  "indicator": {\n'
-            '    "impact": "positive|neutral|negative",\n'
-            '    "confidence": "low|medium|high",\n'
+            '    "impact": "neutral",\n'
+            '    "confidence": "medium",\n'
             '    "rationale": ["2-4 причины оценки impact"]\n'
             "  }\n"
             "}\n\n"
@@ -110,24 +124,28 @@ class GetNewsFeed:
             "- summary не должен содержать conclusion/risks.\n"
             "- facts не должны повторять summary дословно.\n"
             "- risks не должны быть перефразированными facts.\n"
+            "- indicator.impact: одно из [\"positive\",\"neutral\",\"negative\"].\n"
+            "- indicator.confidence: одно из [\"low\",\"medium\",\"high\"].\n"
             "- Это НЕ инвестиционный совет.\n\n"
             f"Текст статьи:\n{raw_text}"
         )
 
-
-    def _get_or_build_base(self, market: str, category: str, url: str) -> dict:
+    def _get_or_build_base(self, market: str, category: str, url: str, force: bool = False) -> dict:
         today = date.today()
 
-        cached = self.cache_repo.get(cache_date=today, category=category, url=url)
-        if cached:
-            payload = _safe_json_loads(cached.payload_json) or {}
-            payload["_meta"] = {
-                "asof": today.isoformat(),
-                "title": cached.title,
-                "source": cached.source,
-                "url": cached.url,
-            }
-            return payload
+        if not force:
+            cached = self.cache_repo.get(cache_date=today, category=category, url=url)
+            if cached:
+                payload = _safe_json_loads(cached.payload_json)
+                if not isinstance(payload, dict):
+                    payload = {}
+                payload["_meta"] = {
+                    "asof": today.isoformat(),
+                    "title": cached.title,
+                    "source": cached.source,
+                    "url": cached.url,
+                }
+                return payload
 
         raw_text = self.scraper.fetch_article_text(url)
         raw_text = _clean_and_truncate(raw_text, max_chars=15000)
@@ -135,53 +153,69 @@ class GetNewsFeed:
         prompt = self._make_base_prompt(category=category, raw_text=raw_text)
         llm_out = self.llm.chat(prompt)
 
-        payload = _safe_json_loads(llm_out) or {}
-        payload_json = json.dumps(payload, ensure_ascii=False)
+        payload = _safe_json_loads(llm_out)
+        if not isinstance(payload, dict):
+            payload = {"_error": "llm_invalid_json"}
+        else:
+            payload_json = json.dumps(payload, ensure_ascii=False)
 
-        parsed = urlparse(url)
-        source_name = parsed.netloc or url
-        title = "Рынок РФ — макрообзор" if category == CATEGORY_MACRO else "Рынок РФ — обзор акций"
+            parsed = urlparse(url)
+            source_name = parsed.netloc or url
+            title = "Рынок РФ — макрообзор" if category == CATEGORY_MACRO else "Рынок РФ — обзор акций"
 
-        self.cache_repo.upsert(
-            cache_date=today,
-            market=market,
-            category=category,
-            url=url,
-            source=source_name,
-            title=title,
-            payload_json=payload_json,
-        )
+            self.cache_repo.upsert(
+                cache_date=today,
+                market=market,
+                category=category,
+                url=url,
+                source=source_name,
+                title=title,
+                payload_json=payload_json,
+            )
 
-        payload["_meta"] = {
-            "asof": today.isoformat(),
-            "title": title,
-            "source": source_name,
-            "url": url,
-        }
+            payload["_meta"] = {
+                "asof": today.isoformat(),
+                "title": title,
+                "source": source_name,
+                "url": url,
+            }
+
         return payload
 
-    def _apply_user_overlay(self, user: User, payload: dict) -> dict:
-        bullets = payload.get("bullets") or []
+
+    def _apply_user_overlay(self, user: User, payload: Optional[dict]) -> dict:
+        if not isinstance(payload, dict):
+            payload = {}
+
+        bullets = payload.get("facts") or payload.get("bullets") or []
         conclusion = payload.get("conclusion") or ""
-        text_blob = (" ".join(bullets) + " " + conclusion).upper()
+        text_blob = (" ".join(map(str, bullets)) + " " + str(conclusion)).upper()
 
         if user.tickers:
             matched = [t for t in user.tickers if t and t.upper() in text_blob]
             if matched:
-                bullets = list(bullets)
+                bullets = list(map(str, bullets))
                 bullets.insert(0, f"Упоминаются тикеры из ваших интересов: {', '.join(matched)}")
-                payload["bullets"] = bullets
+                payload["facts"] = bullets
 
         return payload
 
-    def execute(self, user: User) -> List[NewsBlock]:
+
+    def execute(self, user: User, force: bool = False) -> List[NewsBlock]:
         blocks: List[NewsBlock] = []
         sources = self._pick_sources(max_blocks=3)
         if not sources:
             return []
 
         for market, category, url in sources:
-            payload = self._get_or_build_base(market=market, category=category, url=url)
+            payload = self._get_or_build_base(
+                market=market,
+                category=category,
+                url=url,
+                force=force,
+            )
+            if not isinstance(payload, dict):
+                payload = {}
             payload = self._apply_user_overlay(user=user, payload=payload)
 
             meta = payload.get("_meta") or {}
@@ -204,12 +238,17 @@ class GetNewsFeed:
 
             indicator_obj = payload.get("indicator") or {}
             indicator: Optional[NewsIndicator] = None
-            if isinstance(indicator_obj, dict) and indicator_obj.get("impact") and indicator_obj.get("confidence"):
-                indicator = NewsIndicator(
-                    impact=indicator_obj.get("impact"),
-                    confidence=indicator_obj.get("confidence"),
-                    rationale=indicator_obj.get("rationale") or [],
-                )
+
+            if isinstance(indicator_obj, dict):
+                impact = _norm_choice(indicator_obj.get("impact"), _ALLOWED_IMPACT)
+                confidence = _norm_choice(indicator_obj.get("confidence"), _ALLOWED_CONFIDENCE)
+
+                if impact and confidence:
+                    indicator = NewsIndicator(
+                        impact=impact,
+                        confidence=confidence,
+                        rationale=indicator_obj.get("rationale") or [],
+                    )
 
             if not summary:
                 fallback = _build_summary_text(bullets=facts, conclusion=conclusion, risks=risks)

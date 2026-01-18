@@ -1,3 +1,4 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -22,6 +23,7 @@ class Settings(BaseSettings):
     LLM_PROVIDER: str
     OLLAMA_URL: str
     OLLAMA_MODEL: str
+    OLLAMA_MAX_CONCURRENCY: int = Field(default=1, ge=1, le=8)
 
 
 settings = Settings()

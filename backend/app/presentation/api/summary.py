@@ -13,15 +13,16 @@ router = APIRouter(prefix="/news", tags=["News"])
 
 @router.get("/feed", response_model=List[NewsBlockOut])
 def get_personal_news_feed(
+    force: bool = False,
     current_user=Depends(get_current_user),
     user_repo: UserRepositorySQL = Depends(get_user_repo),
-    use_case: GetNewsFeed = Depends(get_news_feed_use_case),
+    use_case: GetNewsFeed = Depends(get_news_feed_use_case)
 ):
     user = user_repo.get_by_email(current_user.email)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
-    blocks = use_case.execute(user)
+    blocks = use_case.execute(user, force=force)
 
     return [
         NewsBlockOut(
