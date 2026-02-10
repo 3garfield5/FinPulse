@@ -36,7 +36,6 @@ export function AdminUsers() {
             <th>id</th>
             <th>email</th>
             <th>role</th>
-            <th>tier</th>
           </tr>
         </thead>
         <tbody>
@@ -56,7 +55,6 @@ export function AdminUsers() {
                   ))}
                 </select>
               </td>
-              <td>{u.subscription_tier}</td>
             </tr>
           ))}
         </tbody>

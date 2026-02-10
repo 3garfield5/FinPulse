@@ -5,7 +5,6 @@ export type Me = {
   email: string;
   roles: string[];
   permissions: string[];
-  subscription_tier: "free" | "pro";
 };
 
 export async function getMe(): Promise<Me> {

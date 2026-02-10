@@ -17,5 +17,4 @@ def me(
         "email": current_user.email,
         "roles": roles,
         "permissions": perms,
-        "subscription_tier": getattr(current_user, "subscription_tier", "free"),
     }

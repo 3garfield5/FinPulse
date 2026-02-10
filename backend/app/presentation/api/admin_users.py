@@ -25,7 +25,6 @@ def list_users():
     with SessionLocal() as session:
         users = session.query(UserModel).order_by(UserModel.id.desc()).all()
 
-        # заранее грузим роли для всех user_id одним запросом
         user_ids = [u.id for u in users]
         role_rows = (
             session.query(UserRoleModel.user_id, RoleModel.name)
@@ -43,7 +42,6 @@ def list_users():
                 "id": u.id,
                 "email": u.email,
                 "roles": sorted(roles_map.get(u.id, [])),
-                "subscription_tier": getattr(u, "subscription_tier", "free"),
             }
             for u in users
         ]

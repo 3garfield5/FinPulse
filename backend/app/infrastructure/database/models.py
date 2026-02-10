@@ -20,7 +20,6 @@ class UserModel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    subscription_tier = Column(String, nullable=False, server_default="free")  # free|pro
     email = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
 

@@ -58,13 +58,12 @@ export default function AdminUsers() {
         <div className="text-sm text-gray-500">Загрузка...</div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left border-b">
+          <table className="w-full text-sm border-collapse">
+            <thead className="border-b">
+              <tr className="text-left">
                 <th className="py-2 pr-4">ID</th>
                 <th className="py-2 pr-4">Email</th>
                 <th className="py-2 pr-4">Role</th>
-                <th className="py-2 pr-4">Tier</th>
               </tr>
             </thead>
             <tbody>
