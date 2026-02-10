@@ -18,10 +18,7 @@ export async function registerUser(data: RegisterPayload) {
 
 export async function loginUser(data: LoginPayload) {
   const response = await api.post("/auth/login", data);
-  const { access_token, refresh_token } = response.data;
-
-  setTokens(access_token, refresh_token);
-  return response.data;
+  return response.data as { access_token: string; refresh_token: string };
 }
 
 export async function logoutUser() {

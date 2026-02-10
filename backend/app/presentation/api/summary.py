@@ -7,11 +7,12 @@ from app.infrastructure.database.user_repo_impl import UserRepositorySQL
 from app.infrastructure.dependencies import get_user_repo, get_news_feed_use_case
 from app.infrastructure.security.auth_jwt import get_current_user
 from app.presentation.schemas.summary import NewsBlockOut, NewsIndicatorOut
+from app.infrastructure.security.authz import require_permissions
 
 router = APIRouter(prefix="/news", tags=["News"])
 
 
-@router.get("/feed", response_model=List[NewsBlockOut])
+@router.get("/feed", response_model=List[NewsBlockOut], dependencies=[Depends(require_permissions(["news:list"]))])
 def get_personal_news_feed(
     force: bool = False,
     current_user=Depends(get_current_user),

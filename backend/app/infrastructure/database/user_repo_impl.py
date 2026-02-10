@@ -6,7 +6,9 @@ from sqlalchemy.orm import sessionmaker
 from app.application.interfaces.user import IUserRepository
 from app.domain.entities.user import User
 from app.infrastructure.database.base import SessionLocal
-from app.infrastructure.database.models import UserModel
+from app.infrastructure.database.models import (
+    RoleModel, PermissionModel, UserRoleModel, RolePermissionModel, UserModel
+)
 
 
 class UserRepositorySQL(IUserRepository):
@@ -126,3 +128,43 @@ class UserRepositorySQL(IUserRepository):
             tickers=db_user.tickers or [],
             sectors=db_user.sectors or [],
         )
+
+    def get_roles(self, user_id: int) -> set[str]:
+        with self._session_factory() as session:
+            rows = (
+                session.query(RoleModel.name)
+                .join(UserRoleModel, UserRoleModel.role_id == RoleModel.id)
+                .filter(UserRoleModel.user_id == user_id)
+                .all()
+            )
+            return {r[0] for r in rows}
+
+    def get_permissions(self, user_id: int) -> set[str]:
+        with self._session_factory() as session:
+            rows = (
+                session.query(PermissionModel.key)
+                .join(RolePermissionModel, RolePermissionModel.permission_id == PermissionModel.id)
+                .join(UserRoleModel, UserRoleModel.role_id == RolePermissionModel.role_id)
+                .filter(UserRoleModel.user_id == user_id)
+                .all()
+            )
+            return {r[0] for r in rows}
+
+    def set_roles(self, user_id: int, role_names: list[str]) -> set[str]:
+        role_names = list(dict.fromkeys(role_names))
+        with self._session_factory() as session:
+            user_exists = session.query(UserModel.id).filter(UserModel.id == user_id).first()
+            if not user_exists:
+                raise ValueError("User not found")
+
+            roles = session.query(RoleModel).filter(RoleModel.name.in_(role_names)).all()
+            if len(roles) != len(role_names):
+                raise ValueError("Unknown role in request")
+
+            # replace roles
+            session.query(UserRoleModel).filter(UserRoleModel.user_id == user_id).delete()
+            for r in roles:
+                session.add(UserRoleModel(user_id=user_id, role_id=r.id))
+
+            session.commit()
+            return {r.name for r in roles}

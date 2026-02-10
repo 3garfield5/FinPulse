@@ -11,9 +11,7 @@ const Link = ({ to, children, ...props }: LinkProps) => (
     {...props}
     className={({ isActive }) =>
       "px-3 py-2 rounded-md text-sm font-medium " +
-      (isActive
-        ? "bg-blue-600 text-white"
-        : "text-gray-700 hover:bg-gray-100")
+      (isActive ? "bg-blue-600 text-white" : "text-gray-700 hover:bg-gray-100")
     }
   >
     {children}
@@ -21,30 +19,31 @@ const Link = ({ to, children, ...props }: LinkProps) => (
 );
 
 export default function Navbar() {
-  const { isAuthenticated, logout } = useAuth();
+  const { auth, hasPermission, hasRole, logout } = useAuth();
+
+  const isLoading = auth.status === "loading";
+  const isAuthed = auth.status === "authenticated";
 
   return (
     <nav className="flex justify-between items-center p-4 bg-white shadow">
-      {/* Лого */}
       <div className="flex items-center gap-3">
-        <a href="/" className="text-2xl font-bold text-blue-600">
+        <NavLink to="/" className="text-2xl font-bold text-blue-600">
           FinPulse
-        </a>
-        <span className="text-sm text-gray-500">
-          AI-ассистент для трейдеров
-        </span>
+        </NavLink>
+        <span className="text-sm text-gray-500">AI-ассистент для трейдеров</span>
       </div>
 
-      {/* Навигация */}
-      <div className="flex gap-3">
-        {isAuthenticated ? (
+      <div className="flex gap-3 items-center">
+        {isLoading ? null : isAuthed ? (
           <>
-            <Link to="/chat">Чат</Link>
-            <Link to="/news">Новости</Link>
-            <Link to="/profile">Профиль</Link>
+            {hasPermission("chat:use") && <Link to="/chat">Чат</Link>}
+            {hasPermission("news:list") && <Link to="/news">Новости</Link>}
+            {hasPermission("profile:read_own") && <Link to="/profile">Профиль</Link>}
+
+            {hasRole("admin") && <Link to="/admin/users">Admin</Link>}
 
             <button
-              onClick={() => logout()}
+              onClick={logout}
               className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md"
             >
               Выйти
@@ -52,16 +51,10 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Link
-              to="/login"
-              className="px-4 py-2 bg-blue-600 text-white rounded"
-            >
+            <Link to="/login" className="px-4 py-2 bg-blue-600 text-white rounded">
               Войти
             </Link>
-            <Link
-              to="/register"
-              className="px-4 py-2 border rounded"
-            >
+            <Link to="/register" className="px-4 py-2 border rounded">
               Зарегистрироваться
             </Link>
           </>

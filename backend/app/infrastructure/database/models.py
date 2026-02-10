@@ -20,6 +20,7 @@ class UserModel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
+    subscription_tier = Column(String, nullable=False, server_default="free")  # free|pro
     email = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
 
@@ -70,3 +71,34 @@ class NewsCacheModel(Base):
     __table_args__ = (
         UniqueConstraint("cache_date", "category", "url", name="uq_news_cache_day_cat_url"),
     )
+
+from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
+from sqlalchemy.orm import relationship
+
+class RoleModel(Base):
+    __tablename__ = "roles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False, index=True)  # user|pro|admin
+
+class PermissionModel(Base):
+    __tablename__ = "permissions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String, unique=True, nullable=False, index=True)  # "chat:use"
+
+class UserRoleModel(Base):
+    __tablename__ = "user_roles"
+
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True)
+
+    __table_args__ = (UniqueConstraint("user_id", "role_id", name="uq_user_role"),)
+
+class RolePermissionModel(Base):
+    __tablename__ = "role_permissions"
+
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True)
+    permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True)
+
+    __table_args__ = (UniqueConstraint("role_id", "permission_id", name="uq_role_perm"),)

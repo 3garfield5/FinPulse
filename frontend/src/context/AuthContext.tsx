@@ -1,105 +1,99 @@
-// src/context/AuthContext.tsx
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { getMe, Me } from "../api/me";
+import { clearTokens, getAccessToken, setTokens as storeTokens } from "../api/client";
 
-interface Tokens {
-  accessToken: string | null;
-  refreshToken: string | null;
-}
+type AuthState =
+  | { status: "loading" }
+  | { status: "anonymous" }
+  | { status: "authenticated"; me: Me };
 
-interface AuthContextType {
-  isAuthenticated: boolean;
-  accessToken: string | null;
-  refreshToken: string | null;
+type Tokens = { accessToken: string; refreshToken: string };
+
+type AuthContextType = {
+  auth: AuthState;
   isAuthReady: boolean;
-  setTokens: (tokens: Tokens) => void;
-  setIsAuthenticated: (value: boolean) => void;
+  me: Me | null;
+
+  // actions
+  login: (tokens: Tokens) => Promise<void>;
   logout: () => void;
-}
+  reload: () => Promise<void>;
+
+  // helpers
+  hasPermission: (perm: string) => boolean;
+  hasRole: (role: string) => boolean;
+};
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isAuthReady, setIsAuthReady] = useState(false); // <-- новый флаг
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [auth, setAuth] = useState<AuthState>({ status: "loading" });
+
+  const isAuthReady = auth.status !== "loading";
+  const me = auth.status === "authenticated" ? auth.me : null;
+
+  async function loadMe() {
+    const token = getAccessToken();
+    if (!token) {
+      setAuth({ status: "anonymous" });
+      return;
+    }
+    try {
+      const me = await getMe();
+      setAuth({ status: "authenticated", me });
+    } catch {
+      clearTokens();
+      setAuth({ status: "anonymous" });
+    }
+  }
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem("auth_tokens");
-      if (stored) {
-        const parsed: Tokens = JSON.parse(stored);
-        if (parsed.accessToken) {
-          setAccessToken(parsed.accessToken);
-          setRefreshToken(parsed.refreshToken);
-          setIsAuthenticated(true);
-        } else {
-          setAccessToken(null);
-          setRefreshToken(null);
-          setIsAuthenticated(false);
-        }
-      } else {
-        setAccessToken(null);
-        setRefreshToken(null);
-        setIsAuthenticated(false);
-      }
-    } catch (e) {
-      // На всякий случай чистим при кривых данных
-      console.error("Ошибка чтения auth_tokens из localStorage:", e);
-      localStorage.removeItem("auth_tokens");
-      setAccessToken(null);
-      setRefreshToken(null);
-      setIsAuthenticated(false);
-    } finally {
-      setIsAuthReady(true); // <-- говорим, что инициализация завершена
-    }
+    void loadMe();
   }, []);
 
-  const setTokens = (newTokens: Tokens) => {
-    setAccessToken(newTokens.accessToken);
-    setRefreshToken(newTokens.refreshToken);
-
-    if (newTokens.accessToken) {
-      localStorage.setItem("auth_tokens", JSON.stringify(newTokens));
-      setIsAuthenticated(true);
-    } else {
-      localStorage.removeItem("auth_tokens");
-      setIsAuthenticated(false);
-    }
-  };
-
-  const logout = () => {
-    setTokens({ accessToken: null, refreshToken: null });
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        accessToken,
-        refreshToken,
-        isAuthReady,
-        setTokens,
-        setIsAuthenticated,
-        logout,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-export const useAuth = (): AuthContextType => {
-  const ctx = useContext(AuthContext);
-  if (!ctx) {
-    throw new Error("useAuth must be used within AuthProvider");
+  async function login(tokens: Tokens) {
+    storeTokens(tokens.accessToken, tokens.refreshToken);
+    await loadMe();
   }
+
+  function logout() {
+    clearTokens();
+    setAuth({ status: "anonymous" });
+  }
+
+  async function reload() {
+    await loadMe();
+  }
+
+  function hasPermission(perm: string) {
+    if (!me) return false;
+    return me.permissions.includes(perm);
+  }
+
+  function hasRole(role: string) {
+    if (!me) return false;
+    return me.roles.includes(role);
+  }
+
+  const value = useMemo<AuthContextType>(
+    () => ({
+      auth,
+      isAuthReady,
+      me,
+      login,
+      logout,
+      reload,
+      hasPermission,
+      hasRole,
+    }),
+    [auth, isAuthReady, me]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth(): AuthContextType {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
-};
+}

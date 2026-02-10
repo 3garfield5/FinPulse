@@ -34,5 +34,6 @@ class Register:
             tickers=[],
             sectors=[],
         )
-
-        return self.repo.create(user)
+        user = self.repo.create(user)
+        self.repo.set_roles(user.id, ["user"])
+        return user

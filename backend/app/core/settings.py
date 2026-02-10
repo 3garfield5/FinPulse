@@ -25,5 +25,7 @@ class Settings(BaseSettings):
     OLLAMA_MODEL: str
     OLLAMA_MAX_CONCURRENCY: int = Field(default=1, ge=1, le=8)
 
+    ADMIN_EMAIL: str
+
 
 settings = Settings()

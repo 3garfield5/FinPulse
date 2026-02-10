@@ -51,8 +51,8 @@ def login_user(
             detail="Incorrect email or password",
         )
 
-    access_token = create_access_token(user.email)
-    refresh_token, refresh_expires_at = create_refresh_token(user.email)
+    access_token = create_access_token(user.id, user.email)
+    refresh_token, refresh_expires_at = create_refresh_token(user.id, user.email)
 
     repo.update_refresh_token(
         user_id=user.id,

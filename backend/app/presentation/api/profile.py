@@ -5,11 +5,12 @@ from app.infrastructure.dependencies import get_user_repo
 from app.infrastructure.security.auth_jwt import get_current_user
 from app.presentation.schemas.profile import ProfileUpdate
 from app.presentation.schemas.users import UserOut
+from app.infrastructure.security.authz import require_permissions
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 
 
-@router.patch("", response_model=UserOut)
+@router.patch("", response_model=UserOut, dependencies=[Depends(require_permissions(["profile:update_own"]))])
 def update_profile(
     data: ProfileUpdate,
     current_user=Depends(get_current_user),
@@ -26,14 +27,10 @@ def update_profile(
             detail="User not found",
         )
 
-    # Обновляем только те поля, которые пришли (PATCH semantics)
     payload = data.model_dump(exclude_unset=True, exclude_none=True)
 
-    # market не даём менять даже если пришёл (MVP)
     payload.pop("market", None)
 
-    # Маппинг полей профиля в модель пользователя.
-    # Важно: названия полей user.* должны совпадать с тем, что у тебя в ORM-модели.
     if "investment_horizon" in payload:
         user.investment_horizon = payload["investment_horizon"]
 
@@ -53,6 +50,6 @@ def update_profile(
     return user
 
 
-@router.get("", response_model=UserOut)
+@router.get("", response_model=UserOut, dependencies=[Depends(require_permissions(["profile:read_own"]))])
 def profile(current_user=Depends(get_current_user)):
     return current_user

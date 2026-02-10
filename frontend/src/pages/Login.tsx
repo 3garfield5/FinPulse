@@ -10,7 +10,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { setTokens, setIsAuthenticated } = useAuth();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,16 +19,14 @@ export default function Login() {
 
     try {
       const data = await loginUser({ email, password });
-      setTokens({
-        accessToken: data.access_token,
-        refreshToken: data.refresh_token ?? null,
-      });
-      setIsAuthenticated(true);
 
-      console.log("Login success, navigating to /profile");
+      await login({
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+      });
+
       navigate("/profile");
     } catch (err: any) {
-      console.error(err);
       const detail = err?.response?.data?.detail || "Ошибка входа";
       setError(detail);
     } finally {
@@ -49,6 +47,7 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full border px-3 py-2 rounded"
+            autoComplete="email"
           />
         </div>
 
@@ -59,6 +58,7 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             className="w-full border px-3 py-2 rounded"
+            autoComplete="current-password"
           />
         </div>
 
