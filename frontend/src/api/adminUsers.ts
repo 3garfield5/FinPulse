@@ -3,12 +3,30 @@ import { api } from "./client";
 export type AdminUserRow = {
   id: number;
   email: string;
+  name?: string | null;
   roles: string[];
-  subscription_tier: "free" | "pro";
+  created_at?: string | null;
+  subscription_tier?: string | null;
 };
 
-export async function listUsers(): Promise<AdminUserRow[]> {
-  const res = await api.get<AdminUserRow[]>("/admin/users");
+export type ListUsersParams = {
+  q?: string;
+  role?: string;
+  sort_by?: "created_at" | "email" | "role";
+  sort_dir?: "asc" | "desc";
+  page?: number;
+  page_size?: number;
+};
+
+export type PagedUsers = {
+  items: AdminUserRow[];
+  total: number;
+  page: number;
+  page_size: number;
+};
+
+export async function listUsers(params?: ListUsersParams): Promise<PagedUsers> {
+  const res = await api.get<PagedUsers>("/admin/users", { params });
   return res.data;
 }
 

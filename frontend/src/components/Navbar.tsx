@@ -43,7 +43,7 @@ export default function Navbar() {
             {hasRole("admin") && <Link to="/admin/users">Admin</Link>}
 
             <button
-              onClick={logout}
+              onClick={() => void logout()}
               className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-md"
             >
               Выйти

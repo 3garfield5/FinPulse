@@ -13,7 +13,7 @@ export interface LoginPayload {
 
 export async function registerUser(data: RegisterPayload) {
   const response = await api.post("/auth/register", data);
-  return response.data; // UserOut
+  return response.data;
 }
 
 export async function loginUser(data: LoginPayload) {

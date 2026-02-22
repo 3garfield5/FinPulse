@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { getMe, Me } from "../api/me";
 import { clearTokens, getAccessToken, setTokens as storeTokens } from "../api/client";
+import { logoutUser } from "../api/auth";
 
 type AuthState =
   | { status: "loading" }
@@ -14,12 +15,10 @@ type AuthContextType = {
   isAuthReady: boolean;
   me: Me | null;
 
-  // actions
   login: (tokens: Tokens) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   reload: () => Promise<void>;
 
-  // helpers
   hasPermission: (perm: string) => boolean;
   hasRole: (role: string) => boolean;
 };
@@ -56,9 +55,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await loadMe();
   }
 
-  function logout() {
-    clearTokens();
-    setAuth({ status: "anonymous" });
+  // ВАЖНО: сначала дергаем backend logout (пока токен ещё есть), потом чистим локально.
+  async function logout() {
+    try {
+      await logoutUser(); // должен уйти с Authorization через interceptor
+    } catch {
+      // игнорируем: локально всё равно выйдем
+    } finally {
+      clearTokens();
+      setAuth({ status: "anonymous" });
+    }
   }
 
   async function reload() {

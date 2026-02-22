@@ -14,7 +14,6 @@ from app.core.constants import MARKET_RU
 from app.infrastructure.database.base import Base
 
 
-
 class UserModel(Base):
     __tablename__ = "users"
 
@@ -34,6 +33,8 @@ class UserModel(Base):
 
     refresh_token = Column(String, nullable=True)
     refresh_token_expires_at = Column(DateTime, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
 
 
 class ChatMessageModel(Base):
@@ -71,9 +72,6 @@ class NewsCacheModel(Base):
         UniqueConstraint("cache_date", "category", "url", name="uq_news_cache_day_cat_url"),
     )
 
-from sqlalchemy import Column, Integer, String, ForeignKey, UniqueConstraint
-from sqlalchemy.orm import relationship
-
 class RoleModel(Base):
     __tablename__ = "roles"
 
@@ -101,3 +99,4 @@ class RolePermissionModel(Base):
     permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True)
 
     __table_args__ = (UniqueConstraint("role_id", "permission_id", name="uq_role_perm"),)
+    

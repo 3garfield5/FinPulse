@@ -1,6 +1,7 @@
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
+from sqlalchemy import or_, func, distinct
 from sqlalchemy.orm import sessionmaker
 
 from app.application.interfaces.user import IUserRepository
@@ -26,7 +27,6 @@ class UserRepositorySQL(IUserRepository):
                 email=user.email,
                 password_hash=user.password_hash,
 
-                # Профиль (MVP)
                 market=user.market,
                 investment_horizon=user.investment_horizon,
                 experience_level=user.experience_level,
@@ -74,12 +74,10 @@ class UserRepositorySQL(IUserRepository):
             if not db_user:
                 raise ValueError("User not found")
 
-            # базовые поля
             db_user.name = user.name
             db_user.email = user.email
             db_user.password_hash = user.password_hash
 
-            # профиль (MVP)
             db_user.market = user.market
             db_user.investment_horizon = user.investment_horizon
             db_user.experience_level = user.experience_level
@@ -168,3 +166,96 @@ class UserRepositorySQL(IUserRepository):
 
             session.commit()
             return {r.name for r in roles}
+        
+    def list_admin_users(
+        self,
+        q: str | None,
+        role: str | None,
+        sort_by: str,
+        sort_dir: str,
+        page: int,
+        page_size: int,
+    ) -> tuple[list[dict[str, Any]], int]:
+        """
+        Возвращает пользователей для админки:
+        - items: [{id,email,name,roles,created_at}]
+        - total: общее кол-во с учётом фильтров (без пагинации)
+        """
+        with self._session_factory() as session:
+            roles_agg = func.array_remove(func.array_agg(func.distinct(RoleModel.name)), None).label("roles")
+            role_sort = func.min(RoleModel.name).label("role_sort")
+
+            base = (
+                session.query(
+                    UserModel.id.label("id"),
+                    UserModel.email.label("email"),
+                    UserModel.name.label("name"),
+                    getattr(UserModel, "created_at", UserModel.id).label("created_at"),
+                    roles_agg,
+                    role_sort,
+                )
+                .outerjoin(UserRoleModel, UserRoleModel.user_id == UserModel.id)
+                .outerjoin(RoleModel, RoleModel.id == UserRoleModel.role_id)
+            )
+
+            # Поиск
+            if q:
+                pattern = f"%{q.strip()}%"
+                # name + email (username в модели нет — если есть, добавь сюда)
+                base = base.filter(
+                    or_(
+                        UserModel.email.ilike(pattern),
+                        UserModel.name.ilike(pattern),
+                    )
+                )
+
+            # Фильтр role
+            if role:
+                # фильтруем по наличию роли, но сохраняем агрегацию ролей
+                base = base.filter(RoleModel.name == role)
+
+            base = base.group_by(UserModel.id)
+
+            total_q = (
+                session.query(func.count(distinct(UserModel.id)))
+                .outerjoin(UserRoleModel, UserRoleModel.user_id == UserModel.id)
+                .outerjoin(RoleModel, RoleModel.id == UserRoleModel.role_id)
+            )
+            if q:
+                pattern = f"%{q.strip()}%"
+                total_q = total_q.filter(or_(UserModel.email.ilike(pattern), UserModel.name.ilike(pattern)))
+            if role:
+                total_q = total_q.filter(RoleModel.name == role)
+
+            total = int(total_q.scalar() or 0)
+
+            # Сортировка
+            sort_map = {
+                "created_at": getattr(UserModel, "created_at", UserModel.id),
+                "email": UserModel.email,
+                "role": role_sort, 
+            }
+            col = sort_map.get(sort_by, getattr(UserModel, "created_at", UserModel.id))
+            ordering = col.asc() if sort_dir == "asc" else col.desc()
+            base = base.order_by(ordering)
+
+            # Пагинация
+            base = base.offset((page - 1) * page_size).limit(page_size)
+
+            rows = base.all()
+
+            items: list[dict[str, Any]] = []
+            for r in rows:
+                roles = list(r.roles or [])
+                roles.sort()
+                items.append(
+                    {
+                        "id": r.id,
+                        "email": r.email,
+                        "name": r.name,
+                        "created_at": r.created_at,
+                        "roles": roles,
+                    }
+                )
+
+            return items, total
