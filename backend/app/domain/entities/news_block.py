@@ -3,7 +3,6 @@ from dataclasses import dataclass, field
 from datetime import date
 from typing import List, Literal, Optional
 
-
 Impact = Literal["positive", "neutral", "negative"]
 Confidence = Literal["low", "medium", "high"]
 

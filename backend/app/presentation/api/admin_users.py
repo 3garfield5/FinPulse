@@ -1,5 +1,6 @@
+from typing import Literal, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
-from typing import Optional, Literal
 
 from app.application.interfaces.user import IUserRepository
 from app.infrastructure.dependencies import get_user_repo

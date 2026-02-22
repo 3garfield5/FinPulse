@@ -8,10 +8,10 @@ from urllib.parse import urlparse
 
 from app.application.interfaces.llm import ILLMService
 from app.core.constants import (
-    NEWS_SOURCES,
-    MARKET_RU,
     CATEGORY_MACRO,
     CATEGORY_STOCKS,
+    MARKET_RU,
+    NEWS_SOURCES,
 )
 from app.domain.entities.news_block import NewsBlock, NewsIndicator
 from app.domain.entities.user import User
@@ -124,8 +124,8 @@ class GetNewsFeed:
             "- summary не должен содержать conclusion/risks.\n"
             "- facts не должны повторять summary дословно.\n"
             "- risks не должны быть перефразированными facts.\n"
-            "- indicator.impact: одно из [\"positive\",\"neutral\",\"negative\"].\n"
-            "- indicator.confidence: одно из [\"low\",\"medium\",\"high\"].\n"
+            '- indicator.impact: одно из ["positive","neutral","negative"].\n'
+            '- indicator.confidence: одно из ["low","medium","high"].\n'
             "- Это НЕ инвестиционный совет.\n\n"
             f"Текст статьи:\n{raw_text}"
         )
@@ -182,7 +182,6 @@ class GetNewsFeed:
 
         return payload
 
-
     def _apply_user_overlay(self, user: User, payload: Optional[dict]) -> dict:
         if not isinstance(payload, dict):
             payload = {}
@@ -199,7 +198,6 @@ class GetNewsFeed:
                 payload["facts"] = bullets
 
         return payload
-
 
     def execute(self, user: User, force: bool = False) -> List[NewsBlock]:
         blocks: List[NewsBlock] = []

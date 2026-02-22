@@ -1,7 +1,9 @@
 from fastapi import Depends, HTTPException, status
-from app.infrastructure.security.auth_jwt import get_current_user
-from app.infrastructure.dependencies import get_user_repo
+
 from app.application.interfaces.user import IUserRepository
+from app.infrastructure.dependencies import get_user_repo
+from app.infrastructure.security.auth_jwt import get_current_user
+
 
 def require_permissions(required: list[str]):
     required_set = set(required)

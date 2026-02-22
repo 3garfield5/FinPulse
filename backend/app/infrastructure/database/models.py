@@ -1,14 +1,16 @@
-from sqlalchemy import (ARRAY, 
-                        CheckConstraint, 
-                        Column, 
-                        DateTime, 
-                        ForeignKey, 
-                        Integer, 
-                        String, 
-                        Text, 
-                        func,
-                        Date, 
-                        UniqueConstraint)
+from sqlalchemy import (
+    ARRAY,
+    CheckConstraint,
+    Column,
+    Date,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
 
 from app.core.constants import MARKET_RU
 from app.infrastructure.database.base import Base
@@ -24,9 +26,9 @@ class UserModel(Base):
 
     market = Column(String, nullable=False, server_default=MARKET_RU)
 
-    investment_horizon = Column(String, nullable=True)   # short | mid | long
-    experience_level = Column(String, nullable=True)     # beginner | intermediate | pro
-    risk_level = Column(String, nullable=True)           # low | medium | high
+    investment_horizon = Column(String, nullable=True)  # short | mid | long
+    experience_level = Column(String, nullable=True)  # beginner | intermediate | pro
+    risk_level = Column(String, nullable=True)  # low | medium | high
 
     tickers = Column(ARRAY(String), nullable=False, server_default="{}")
     sectors = Column(ARRAY(String), nullable=False, server_default="{}")
@@ -47,9 +49,8 @@ class ChatMessageModel(Base):
     content = Column(Text, nullable=False)
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
-    __table_args__ = (
-        CheckConstraint("role IN ('user', 'FinPulse')", name="chat_messages_role_check"),
-    )
+    __table_args__ = (CheckConstraint("role IN ('user', 'FinPulse')", name="chat_messages_role_check"),)
+
 
 class NewsCacheModel(Base):
     __tablename__ = "news_cache"
@@ -68,9 +69,8 @@ class NewsCacheModel(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
-    __table_args__ = (
-        UniqueConstraint("cache_date", "category", "url", name="uq_news_cache_day_cat_url"),
-    )
+    __table_args__ = (UniqueConstraint("cache_date", "category", "url", name="uq_news_cache_day_cat_url"),)
+
 
 class RoleModel(Base):
     __tablename__ = "roles"
@@ -78,11 +78,13 @@ class RoleModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False, index=True)  # user|pro|admin
 
+
 class PermissionModel(Base):
     __tablename__ = "permissions"
 
     id = Column(Integer, primary_key=True, index=True)
     key = Column(String, unique=True, nullable=False, index=True)  # "chat:use"
+
 
 class UserRoleModel(Base):
     __tablename__ = "user_roles"
@@ -92,6 +94,7 @@ class UserRoleModel(Base):
 
     __table_args__ = (UniqueConstraint("user_id", "role_id", name="uq_user_role"),)
 
+
 class RolePermissionModel(Base):
     __tablename__ = "role_permissions"
 
@@ -99,4 +102,3 @@ class RolePermissionModel(Base):
     permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True)
 
     __table_args__ = (UniqueConstraint("role_id", "permission_id", name="uq_role_perm"),)
-    

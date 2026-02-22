@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends
-from app.infrastructure.security.auth_jwt import get_current_user
-from app.infrastructure.dependencies import get_user_repo
+
 from app.application.interfaces.user import IUserRepository
+from app.infrastructure.dependencies import get_user_repo
+from app.infrastructure.security.auth_jwt import get_current_user
 
 router = APIRouter(prefix="/me", tags=["Me"])
+
 
 @router.get("")
 def me(

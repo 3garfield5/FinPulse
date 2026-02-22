@@ -3,9 +3,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from app.application.interfaces.user import IUserRepository
 from app.infrastructure.dependencies import get_user_repo
 from app.infrastructure.security.auth_jwt import get_current_user
+from app.infrastructure.security.authz import require_permissions
 from app.presentation.schemas.profile import ProfileUpdate
 from app.presentation.schemas.users import UserOut
-from app.infrastructure.security.authz import require_permissions
 
 router = APIRouter(prefix="/profile", tags=["Profile"])
 

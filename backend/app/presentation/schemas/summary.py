@@ -5,7 +5,6 @@ from typing import List, Literal, Optional
 
 from pydantic import BaseModel
 
-
 Impact = Literal["positive", "neutral", "negative"]
 Confidence = Literal["low", "medium", "high"]
 

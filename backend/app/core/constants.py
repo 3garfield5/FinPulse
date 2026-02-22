@@ -1,5 +1,5 @@
-from typing import Literal, Dict, List, Set
 import re
+from typing import Dict, List, Literal, Set
 
 CATEGORY_MACRO = "macro"
 CATEGORY_STOCKS = "stocks"

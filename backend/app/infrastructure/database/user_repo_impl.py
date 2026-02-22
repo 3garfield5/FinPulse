@@ -1,15 +1,13 @@
 from datetime import datetime
 from typing import Any, Optional
 
-from sqlalchemy import or_, func, distinct
+from sqlalchemy import distinct, func, or_
 from sqlalchemy.orm import sessionmaker
 
 from app.application.interfaces.user import IUserRepository
 from app.domain.entities.user import User
 from app.infrastructure.database.base import SessionLocal
-from app.infrastructure.database.models import (
-    RoleModel, PermissionModel, UserRoleModel, RolePermissionModel, UserModel
-)
+from app.infrastructure.database.models import PermissionModel, RoleModel, RolePermissionModel, UserModel, UserRoleModel
 
 
 class UserRepositorySQL(IUserRepository):
@@ -26,7 +24,6 @@ class UserRepositorySQL(IUserRepository):
                 name=user.name,
                 email=user.email,
                 password_hash=user.password_hash,
-
                 market=user.market,
                 investment_horizon=user.investment_horizon,
                 experience_level=user.experience_level,
@@ -105,11 +102,7 @@ class UserRepositorySQL(IUserRepository):
 
     def get_by_refresh_token(self, refresh_token: str) -> UserModel | None:
         with self._session_factory() as session:
-            return (
-                session.query(UserModel)
-                .filter(UserModel.refresh_token == refresh_token)
-                .first()
-            )
+            return session.query(UserModel).filter(UserModel.refresh_token == refresh_token).first()
 
     @staticmethod
     def _to_domain(db_user: UserModel) -> User:
@@ -118,7 +111,6 @@ class UserRepositorySQL(IUserRepository):
             name=db_user.name,
             email=db_user.email,
             password_hash=db_user.password_hash,
-
             market=db_user.market,
             investment_horizon=db_user.investment_horizon,
             experience_level=db_user.experience_level,
@@ -166,7 +158,7 @@ class UserRepositorySQL(IUserRepository):
 
             session.commit()
             return {r.name for r in roles}
-        
+
     def list_admin_users(
         self,
         q: str | None,
@@ -233,7 +225,7 @@ class UserRepositorySQL(IUserRepository):
             sort_map = {
                 "created_at": getattr(UserModel, "created_at", UserModel.id),
                 "email": UserModel.email,
-                "role": role_sort, 
+                "role": role_sort,
             }
             col = sort_map.get(sort_by, getattr(UserModel, "created_at", UserModel.id))
             ordering = col.asc() if sort_dir == "asc" else col.desc()

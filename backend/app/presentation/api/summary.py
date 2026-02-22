@@ -4,10 +4,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.application.use_cases.summarize_article import GetNewsFeed
 from app.infrastructure.database.user_repo_impl import UserRepositorySQL
-from app.infrastructure.dependencies import get_user_repo, get_news_feed_use_case
+from app.infrastructure.dependencies import get_news_feed_use_case, get_user_repo
 from app.infrastructure.security.auth_jwt import get_current_user
-from app.presentation.schemas.summary import NewsBlockOut, NewsIndicatorOut
 from app.infrastructure.security.authz import require_permissions
+from app.presentation.schemas.summary import NewsBlockOut, NewsIndicatorOut
 
 router = APIRouter(prefix="/news", tags=["News"])
 
@@ -17,7 +17,7 @@ def get_personal_news_feed(
     force: bool = False,
     current_user=Depends(get_current_user),
     user_repo: UserRepositorySQL = Depends(get_user_repo),
-    use_case: GetNewsFeed = Depends(get_news_feed_use_case)
+    use_case: GetNewsFeed = Depends(get_news_feed_use_case),
 ):
     user = user_repo.get_by_email(current_user.email)
     if not user:

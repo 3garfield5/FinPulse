@@ -1,20 +1,19 @@
 import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.infrastructure.database.base import Base
-from app.infrastructure.database.base import engine
+from app.core.settings import settings
+from app.infrastructure.database.base import Base, engine
+from app.infrastructure.database.seed_rbac import seed_rbac
 from app.infrastructure.middleware import ErrorHandlingMiddleware, LoggingMiddleware
+from app.presentation.api.admin_users import router as admin_users_router
 from app.presentation.api.auth import router as auth_router
 from app.presentation.api.chat import router as chat_router
+from app.presentation.api.me import router as me_router
 from app.presentation.api.meta import router as options_router
 from app.presentation.api.profile import router as profile_router
 from app.presentation.api.summary import router as summary_router
-from app.presentation.api.me import router as me_router
-from app.presentation.api.admin_users import router as admin_users_router
-from app.infrastructure.database.seed_rbac import seed_rbac
-from app.core.settings import settings
-
 
 logging.basicConfig(
     level=logging.INFO,
@@ -23,10 +22,12 @@ logging.basicConfig(
 
 app = FastAPI(title="FinPulse API", version="1.0")
 
+
 @app.on_event("startup")
 def startup():
     Base.metadata.create_all(bind=engine)
     seed_rbac(admin_email=getattr(settings, "ADMIN_EMAIL", None))
+
 
 app.add_middleware(
     CORSMiddleware,

@@ -1,11 +1,13 @@
-from typing import List, Optional, Literal
+from typing import List, Literal, Optional
+
 from pydantic import BaseModel, Field, field_validator
+
 from app.core.constants import (
-    MARKET_RU,
-    ALLOWED_HORIZONS,
     ALLOWED_EXPERIENCE,
+    ALLOWED_HORIZONS,
     ALLOWED_RISK,
     ALLOWED_SECTORS,
+    MARKET_RU,
     TICKER_RE,
 )
 

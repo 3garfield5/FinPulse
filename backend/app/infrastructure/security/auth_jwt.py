@@ -10,6 +10,7 @@ from app.infrastructure.dependencies import get_user_repo
 
 bearer_scheme = HTTPBearer()
 
+
 def _create_token(data: dict, expires_delta: timedelta):
     to_encode = data.copy()
     expire = datetime.utcnow() + expires_delta
@@ -18,11 +19,13 @@ def _create_token(data: dict, expires_delta: timedelta):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
+
 def create_access_token(user_id: int, email: str):
     return _create_token(
         {"sub": user_id, "email": email, "type": "access"},
         timedelta(minutes=settings.ACCESS_EXPIRE_MINUTES),
     )
+
 
 def create_refresh_token(user_id: int, email: str):
     token = _create_token(
@@ -32,11 +35,13 @@ def create_refresh_token(user_id: int, email: str):
     expires_at = datetime.utcnow() + timedelta(days=settings.REFRESH_EXPIRE_DAYS)
     return token, expires_at
 
+
 def decode_token(token: str):
     try:
         return jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     except JWTError as e:
         raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
+
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),

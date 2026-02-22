@@ -1,8 +1,7 @@
 from sqlalchemy import text
-from app.infrastructure.database.base import engine, SessionLocal
-from app.infrastructure.database.models import (
-    RoleModel, PermissionModel, UserRoleModel, RolePermissionModel, UserModel
-)
+
+from app.infrastructure.database.base import SessionLocal, engine
+from app.infrastructure.database.models import PermissionModel, RoleModel, RolePermissionModel, UserModel, UserRoleModel
 
 PERMISSIONS = [
     "news:list",
@@ -12,7 +11,7 @@ PERMISSIONS = [
     "profile:read_own",
     "profile:update_own",
     "admin_users:assign_role",
-    "admin_users:list"
+    "admin_users:list",
 ]
 
 ROLE_PERMS = {
@@ -40,16 +39,22 @@ ROLE_PERMS = {
         "profile:read_own",
         "profile:update_own",
         "admin_users:assign_role",
-        "admin_users:list"
+        "admin_users:list",
     ],
 }
 
+
 def ensure_user_subscription_column():
     with engine.begin() as conn:
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             ALTER TABLE users
             ADD COLUMN IF NOT EXISTS subscription_tier VARCHAR NOT NULL DEFAULT 'free'
-        """))
+        """
+            )
+        )
+
 
 def seed_rbac(admin_email: str | None = None):
     ensure_user_subscription_column()
@@ -77,11 +82,7 @@ def seed_rbac(admin_email: str | None = None):
             role = roles_by_name[role_name]
             for key in keys:
                 perm = perms_by_key[key]
-                exists = (
-                    session.query(RolePermissionModel)
-                    .filter_by(role_id=role.id, permission_id=perm.id)
-                    .first()
-                )
+                exists = session.query(RolePermissionModel).filter_by(role_id=role.id, permission_id=perm.id).first()
                 if not exists:
                     session.add(RolePermissionModel(role_id=role.id, permission_id=perm.id))
 

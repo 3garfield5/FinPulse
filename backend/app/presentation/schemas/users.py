@@ -1,4 +1,5 @@
-from typing import List, Optional, Literal
+from typing import List, Literal, Optional
+
 from pydantic import BaseModel, ConfigDict
 
 from app.core.constants import MARKET_RU

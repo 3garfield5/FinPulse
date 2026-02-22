@@ -1,8 +1,8 @@
 from hashlib import sha256
 
 from app.application.interfaces.user import IUserRepository
-from app.domain.entities.user import User
 from app.core.constants import MARKET_RU
+from app.domain.entities.user import User
 
 
 class Register:
@@ -25,9 +25,7 @@ class Register:
             name=name,
             email=email,
             password_hash=password_hash,
-
             market=MARKET_RU,
-
             investment_horizon=None,
             experience_level=None,
             risk_level=None,

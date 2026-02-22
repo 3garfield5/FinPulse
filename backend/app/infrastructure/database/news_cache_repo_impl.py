@@ -27,11 +27,7 @@ class NewsCacheRepoSQL:
 
     def get(self, cache_date: date, category: str, url: str) -> Optional[CachedSummaryRow]:
         with self._session_factory() as session:
-            row = (
-                session.query(NewsCacheModel)
-                .filter_by(cache_date=cache_date, category=category, url=url)
-                .first()
-            )
+            row = session.query(NewsCacheModel).filter_by(cache_date=cache_date, category=category, url=url).first()
             if not row:
                 return None
             return CachedSummaryRow(
@@ -55,11 +51,7 @@ class NewsCacheRepoSQL:
         payload_json: str,
     ) -> CachedSummaryRow:
         with self._session_factory() as session:
-            row = (
-                session.query(NewsCacheModel)
-                .filter_by(cache_date=cache_date, category=category, url=url)
-                .first()
-            )
+            row = session.query(NewsCacheModel).filter_by(cache_date=cache_date, category=category, url=url).first()
 
             if row:
                 row.market = market

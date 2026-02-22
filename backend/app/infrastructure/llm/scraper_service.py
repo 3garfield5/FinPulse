@@ -1,4 +1,5 @@
 import logging
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -16,11 +17,7 @@ class ScraperService:
         При ошибке возвращает None (НЕ выбрасывает исключение).
         """
         try:
-            response = requests.get(
-                url,
-                timeout=10,
-                headers={"User-Agent": "Mozilla/5.0"}
-            )
+            response = requests.get(url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
             response.raise_for_status()
 
         except Exception as e:

@@ -1,5 +1,4 @@
-from typing import Optional
-from pydantic import BaseModel, EmailStr, ConfigDict, constr
+from pydantic import BaseModel, ConfigDict, EmailStr, constr
 
 
 class RegisterIn(BaseModel):
