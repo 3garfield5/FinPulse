@@ -1,5 +1,6 @@
 from sqlalchemy import (
     ARRAY,
+    Boolean,
     CheckConstraint,
     Column,
     Date,
@@ -45,11 +46,27 @@ class ChatMessageModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
 
+    chat_id = Column(Integer, ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False, index=True)
+
     role = Column(String(20), nullable=False)
     content = Column(Text, nullable=False)
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     __table_args__ = (CheckConstraint("role IN ('user', 'FinPulse')", name="chat_messages_role_check"),)
+
+
+class ChatSessionModel(Base):
+    __tablename__ = "chat_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    title = Column(String(120), nullable=False)
+    topic = Column(String(120), nullable=True)
+    is_default = Column(Boolean, nullable=False, server_default="false")
+
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
 
 
 class NewsCacheModel(Base):
@@ -102,3 +119,21 @@ class RolePermissionModel(Base):
     permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True)
 
     __table_args__ = (UniqueConstraint("role_id", "permission_id", name="uq_role_perm"),)
+
+
+class FileModel(Base):
+    __tablename__ = "files"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    chat_id = Column(Integer, ForeignKey("chat_sessions.id", ondelete="CASCADE"), nullable=False, index=True)
+
+    original_name = Column(String, nullable=False)
+    mime_type = Column(String, nullable=False)
+    size_bytes = Column(Integer, nullable=False)
+
+    object_key = Column(String, nullable=False, unique=True, index=True)
+
+    is_ready = Column(Boolean, nullable=False, server_default="false")
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())

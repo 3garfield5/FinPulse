@@ -10,6 +10,7 @@ from app.infrastructure.middleware import ErrorHandlingMiddleware, LoggingMiddle
 from app.presentation.api.admin_users import router as admin_users_router
 from app.presentation.api.auth import router as auth_router
 from app.presentation.api.chat import router as chat_router
+from app.presentation.api.files import router as files_router
 from app.presentation.api.me import router as me_router
 from app.presentation.api.meta import router as options_router
 from app.presentation.api.profile import router as profile_router
@@ -48,6 +49,7 @@ app.include_router(profile_router)
 app.include_router(options_router)
 app.include_router(me_router)
 app.include_router(admin_users_router)
+app.include_router(files_router)
 
 
 @app.get("/")

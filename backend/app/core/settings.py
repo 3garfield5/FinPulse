@@ -27,5 +27,13 @@ class Settings(BaseSettings):
 
     ADMIN_EMAIL: str
 
+    S3_PUBLIC_ENDPOINT: str
+    S3_ENDPOINT: str
+    S3_REGION: str
+    S3_ACCESS_KEY: str
+    S3_SECRET_KEY: str
+    S3_BUCKET: str
+    S3_PRESIGN_EXPIRES_SEC: int
+
 
 settings = Settings()

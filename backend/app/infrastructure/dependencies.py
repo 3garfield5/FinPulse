@@ -5,6 +5,8 @@ from app.application.use_cases.chat.chat_with_llm import ChatWithLLM
 from app.application.use_cases.summarize_article import GetNewsFeed
 from app.infrastructure.database.base import SessionLocal
 from app.infrastructure.database.chat_repo_impl import ChatRepositorySQL
+from app.infrastructure.database.chat_session_repo_impl import ChatSessionRepositorySQL
+from app.infrastructure.database.file_repo_impl import FileRepositorySQL
 from app.infrastructure.database.news_cache_repo_impl import NewsCacheRepoSQL
 from app.infrastructure.database.user_repo_impl import UserRepositorySQL
 from app.infrastructure.llm.ollama_llm_service import OllamaLLMService
@@ -31,6 +33,10 @@ def get_chat_repo() -> ChatRepositorySQL:
     return ChatRepositorySQL()
 
 
+def get_chat_session_repo() -> ChatSessionRepositorySQL:
+    return ChatSessionRepositorySQL()
+
+
 def get_chat_use_case(
     llm: OllamaLLMService = Depends(get_llm_service),
     repo: ChatRepositorySQL = Depends(get_chat_repo),
@@ -44,3 +50,7 @@ def get_news_feed_use_case(
     cache_repo: NewsCacheRepoSQL = Depends(get_news_cache_repo),
 ) -> GetNewsFeed:
     return GetNewsFeed(scraper=scraper, llm=llm, cache_repo=cache_repo)
+
+
+def get_file_repo() -> FileRepositorySQL:
+    return FileRepositorySQL()
