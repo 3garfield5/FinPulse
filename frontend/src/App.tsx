@@ -7,6 +7,7 @@ import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminUsers from "./pages/AdminUsers";
+import FilesPage from "./pages/Files";
 
 import Navbar from "./components/Navbar";
 import { AuthProvider } from "./context/AuthContext";
@@ -67,6 +68,15 @@ export default function App() {
             element={
               <RequirePermission permission="admin_users:assign_role">
                 <AdminUsers />
+              </RequirePermission>
+            }
+          />
+
+          <Route
+            path="/files"
+            element={
+              <RequirePermission permission="chat:use">
+                <FilesPage />
               </RequirePermission>
             }
           />

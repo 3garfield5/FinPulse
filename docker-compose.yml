@@ -1,4 +1,47 @@
 services:
+  s3:
+    image: minio/minio:latest
+    container_name: finpulse-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-minioadmin}
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+    networks:
+      - finpulse
+
+  # Автосоздание бакета при старте
+  s3-init:
+    image: minio/mc:latest
+    container_name: finpulse-minio-init
+    depends_on:
+      s3:
+        condition: service_healthy
+    environment:
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-minioadmin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-minioadmin}
+      S3_BUCKET: ${S3_BUCKET:-finpulse}
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://s3:9000 $$S3_ACCESS_KEY $$S3_SECRET_KEY;
+      mc mb -p local/$$S3_BUCKET || true;
+      mc anonymous set none local/$$S3_BUCKET || true;
+      echo 'MinIO bucket ensured';
+      "
+    restart: "no"
+    networks:
+      - finpulse
+
   ollama:
     image: ollama/ollama:latest
     container_name: finpulse-ollama
@@ -91,6 +134,7 @@ services:
 volumes:
   ollama:
   pgdata:
+  minio_data:
 
 networks:
   finpulse:
