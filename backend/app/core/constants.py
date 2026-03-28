@@ -44,3 +44,19 @@ NEWS_SOURCES: Dict[str, Dict[str, List[str]]] = {
         ],
     }
 }
+
+# Базовый набор ликвидных бумаг (используем как sample-представление состава IMOEX для MVP).
+IMOEX_SAMPLE_TICKERS: List[str] = [
+    "SBER",
+    "GAZP",
+    "LKOH",
+    "ROSN",
+    "NVTK",
+    "GMKN",
+    "TATN",
+    "SNGS",
+    "MGNT",
+    "YDEX",
+    "PLZL",
+    "CHMF",
+]

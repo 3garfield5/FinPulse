@@ -26,6 +26,8 @@ class Settings(BaseSettings):
     OLLAMA_MAX_CONCURRENCY: int = Field(default=1, ge=1, le=8)
 
     ADMIN_EMAIL: str
+    FRONTEND_BASE_URL: str = "http://localhost:3000"
+    API_BASE_URL: str = "http://localhost:8000"
 
     S3_PUBLIC_ENDPOINT: str
     S3_ENDPOINT: str

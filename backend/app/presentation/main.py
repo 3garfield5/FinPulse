@@ -14,7 +14,10 @@ from app.presentation.api.files import router as files_router
 from app.presentation.api.me import router as me_router
 from app.presentation.api.meta import router as options_router
 from app.presentation.api.profile import router as profile_router
+from app.presentation.api.public_moex import router as public_moex_router
+from app.presentation.api.seo import router as seo_router
 from app.presentation.api.summary import router as summary_router
+from app.presentation.api.public_news import router as public_news
 
 logging.basicConfig(
     level=logging.INFO,
@@ -50,6 +53,9 @@ app.include_router(options_router)
 app.include_router(me_router)
 app.include_router(admin_users_router)
 app.include_router(files_router)
+app.include_router(public_news)
+app.include_router(public_moex_router)
+app.include_router(seo_router)
 
 
 @app.get("/")

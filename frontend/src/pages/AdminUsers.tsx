@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { listUsers, setUserRoles, AdminUserRow } from "../api/adminUsers";
+import SeoHead from "../components/SeoHead";
 
 const ROLE_OPTIONS = ["", "user", "pro", "admin"] as const;
 type SortBy = "created_at" | "email" | "role";
@@ -115,7 +116,14 @@ export default function AdminUsers() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto bg-white rounded shadow p-6 space-y-4">
+    <>
+      <SeoHead
+        title="Админ: пользователи | FinPulse"
+        description="Служебный раздел администрирования пользователей."
+        canonicalPath="/admin/users"
+        noindex
+      />
+      <div className="max-w-5xl mx-auto bg-white rounded shadow p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Admin: Users</h1>
         <button
@@ -263,6 +271,7 @@ export default function AdminUsers() {
           Next
         </button>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

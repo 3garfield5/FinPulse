@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ProfileForm from "../components/Preferences";
+import SeoHead from "../components/SeoHead";
 import { MARKET_LABELS, HORIZON_LABELS, EXPERIENCE_LABELS, RISK_LABELS, SECTOR_LABELS } from "../constants/dicts";
 import { getProfile, updateProfile, ProfileData, ProfileUpdatePayload } from "../api/profile";
 
@@ -63,9 +64,16 @@ export default function Profile() {
   if (!profile) return <div>Не удалось загрузить профиль</div>;
 
   return (
-    <div className="grid md:grid-cols-3 gap-6">
-      <div className="md:col-span-2 bg-white p-4 rounded shadow">
-        <h3 className="font-semibold mb-2">Личный кабинет</h3>
+    <>
+      <SeoHead
+        title="Профиль | FinPulse"
+        description="Закрытый раздел с настройками инвестиционного профиля."
+        canonicalPath="/profile"
+        noindex
+      />
+      <div className="grid md:grid-cols-3 gap-6">
+        <div className="md:col-span-2 bg-white p-4 rounded shadow">
+          <h1 className="font-semibold mb-2">Личный кабинет</h1>
         <p className="text-sm text-gray-600">{profile.name}</p>
         <p className="text-sm text-gray-600">{profile.email}</p>
 
@@ -131,20 +139,21 @@ export default function Profile() {
             )}
           </div>
         </div>
-      </div>
+        </div>
 
-      <aside>
-        <ProfileForm
-          investment_horizon={draft.investment_horizon ?? null}
-          experience_level={draft.experience_level ?? null}
-          risk_level={draft.risk_level ?? null}
-          tickers={draft.tickers ?? []}
-          sectors={draft.sectors ?? []}
-          onChange={(next) => setDraft((prev) => ({ ...prev, ...next }))}
-          onSave={(payload) => handleSave(payload)}
-        />
-        {saving && <p className="text-xs text-gray-500 mt-2">Сохраняем профиль...</p>}
-      </aside>
-    </div>
+        <aside>
+          <ProfileForm
+            investment_horizon={draft.investment_horizon ?? null}
+            experience_level={draft.experience_level ?? null}
+            risk_level={draft.risk_level ?? null}
+            tickers={draft.tickers ?? []}
+            sectors={draft.sectors ?? []}
+            onChange={(next) => setDraft((prev) => ({ ...prev, ...next }))}
+            onSave={(payload) => handleSave(payload)}
+          />
+          {saving && <p className="text-xs text-gray-500 mt-2">Сохраняем профиль...</p>}
+        </aside>
+      </div>
+    </>
   );
 }

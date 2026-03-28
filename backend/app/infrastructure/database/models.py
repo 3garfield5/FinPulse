@@ -11,6 +11,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
+    Index
 )
 
 from app.core.constants import MARKET_RU
@@ -137,3 +138,37 @@ class FileModel(Base):
 
     is_ready = Column(Boolean, nullable=False, server_default="false")
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
+class News(Base):
+    __tablename__ = "news"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    # Метаданные статьи
+    title = Column(String(512), nullable=False)
+    slug = Column(String(512), nullable=False, index=True)
+
+    source = Column(String(256), nullable=False)
+    url = Column(Text, nullable=False, unique=True)  # чтобы не дублировать одну статью
+
+    # Дата (если у вас есть только date), можно хранить как asof
+    asof = Column(Date, nullable=True)
+
+    # Категоризация
+    market = Column(String(64), nullable=True)
+    category = Column(String(64), nullable=True, index=True)
+
+    # Нормализованный payload суммаризации (JSON строкой)
+    payload_json = Column(Text, nullable=False)
+
+    # Публичность (для /public/news)
+    is_public = Column(Boolean, nullable=False, server_default="true", index=True)
+
+    # Технические поля
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), index=True)
+    updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        # Для быстрых выборок "последние публичные"
+        Index("ix_news_public_created", "is_public", "created_at"),
+    )

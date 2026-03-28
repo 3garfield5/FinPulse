@@ -193,7 +193,6 @@ class UserRepositorySQL(IUserRepository):
             # Поиск
             if q:
                 pattern = f"%{q.strip()}%"
-                # name + email (username в модели нет — если есть, добавь сюда)
                 base = base.filter(
                     or_(
                         UserModel.email.ilike(pattern),

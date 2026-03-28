@@ -34,10 +34,15 @@ export default function Navbar() {
       </div>
 
       <div className="flex gap-3 items-center">
-        {isLoading ? null : isAuthed ? (
+        <Link to="/news/public">Публичные новости</Link>
+        <Link to="/market/moex">Котировки MOEX</Link>
+
+        {isLoading ? (
+          <span className="text-sm text-gray-400">Проверка сессии...</span>
+        ) : isAuthed ? (
           <>
             {hasPermission("chat:use") && <Link to="/chat">Чат</Link>}
-            {hasPermission("news:list") && <Link to="/news">Новости</Link>}
+            {hasPermission("news:list") && <Link to="/news" end>Моя лента</Link>}
             {hasPermission("profile:read_own") && <Link to="/profile">Профиль</Link>}
 
             {hasRole("admin") && <Link to="/admin/users">Admin</Link>}

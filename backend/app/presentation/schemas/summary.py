@@ -16,19 +16,17 @@ class NewsIndicatorOut(BaseModel):
 
 
 class NewsBlockOut(BaseModel):
+    id: str | int
+    slug: str
+
     title: str
     source: str
     url: str
 
     summary: str
+    bullets: List[str]
+    conclusion: Optional[str]
+    risks: List[str]
 
-    bullets: List[str] = []
-    conclusion: Optional[str] = None
-    risks: List[str] = []
-
-    indicator: Optional[NewsIndicatorOut] = None
-
-    asof: Optional[date] = None
-
-    class Config:
-        from_attributes = True
+    indicator: Optional[NewsIndicatorOut]
+    asof: Optional[date]

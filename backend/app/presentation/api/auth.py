@@ -79,7 +79,7 @@ def refresh_tokens(
         raise HTTPException(status_code=401, detail="Refresh token expired")
 
     try:
-        jwt.decode(
+        payload = jwt.decode(
             data.refresh_token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
@@ -87,8 +87,11 @@ def refresh_tokens(
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-    access_token = create_access_token(user.email)
-    new_refresh_token, new_expires_at = create_refresh_token(user.email)
+    if payload.get("type") != "refresh":
+        raise HTTPException(status_code=401, detail="Invalid token type")
+
+    access_token = create_access_token(user.id, user.email)
+    new_refresh_token, new_expires_at = create_refresh_token(user.id, user.email)
 
     repo.update_refresh_token(
         user_id=user.id,

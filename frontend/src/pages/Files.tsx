@@ -1,6 +1,7 @@
 // src/pages/Files.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, Link } from "react-router-dom";
+import SeoHead from "../components/SeoHead";
 import {
   listFilesByChat,
   initUpload,
@@ -153,7 +154,14 @@ export default function FilesPage() {
   };
 
   return (
-    <div className="bg-white p-4 rounded shadow">
+    <>
+      <SeoHead
+        title="Файлы чата | FinPulse"
+        description="Закрытый раздел файлов и вложений чатов."
+        canonicalPath={chatId ? `/files?chatId=${chatId}` : "/files"}
+        noindex
+      />
+      <div className="bg-white p-4 rounded shadow">
       <div className="flex items-center justify-between gap-3 mb-4">
         <div className="min-w-0">
           <div className="text-sm text-gray-500">Файлы чата</div>
@@ -216,6 +224,7 @@ export default function FilesPage() {
           ))}
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 }

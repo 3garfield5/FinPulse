@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { registerUser } from "../api/auth";
+import SeoHead from "../components/SeoHead";
 
 const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -51,8 +52,14 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto bg-white p-6 rounded shadow">
-      <h2 className="text-xl font-semibold mb-4">Регистрация</h2>
+    <>
+      <SeoHead
+        title="Регистрация | FinPulse"
+        description="Создайте аккаунт FinPulse для персональной ленты и AI-помощника."
+        canonicalPath="/register"
+      />
+      <div className="max-w-xl mx-auto bg-white p-6 rounded shadow">
+        <h1 className="text-xl font-semibold mb-4">Регистрация</h1>
 
       {errorMsg && (
         <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded">
@@ -116,10 +123,11 @@ const Register: React.FC = () => {
         </div>
       </form>
 
-      <div className="mt-4 text-sm text-gray-500">
-        Рынок по умолчанию: 🇷🇺 Россия. Профиль можно настроить после регистрации.
+        <div className="mt-4 text-sm text-gray-500">
+          Рынок по умолчанию: 🇷🇺 Россия. Профиль можно настроить после регистрации.
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

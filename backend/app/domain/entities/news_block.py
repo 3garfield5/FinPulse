@@ -16,16 +16,15 @@ class NewsIndicator:
 
 @dataclass
 class NewsBlock:
+    id: str
+    slug: str
+
     title: str
     source: str
     url: str
-
     summary: str
-
-    bullets: List[str] = field(default_factory=list)
-    conclusion: Optional[str] = None
-    risks: List[str] = field(default_factory=list)
-
-    indicator: Optional[NewsIndicator] = None
-
-    asof: Optional[date] = None
+    bullets: List[str]
+    conclusion: Optional[str]
+    risks: List[str]
+    indicator: Optional[NewsIndicator]
+    asof: Optional[date]

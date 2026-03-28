@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
+import SeoHead from "../components/SeoHead";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -35,43 +36,50 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white p-6 rounded shadow">
-      <h2 className="text-xl font-semibold mb-4">Войти</h2>
+    <>
+      <SeoHead
+        title="Вход | FinPulse"
+        description="Вход в аккаунт FinPulse для доступа к персональной аналитике."
+        canonicalPath="/login"
+      />
+      <div className="max-w-md mx-auto bg-white p-6 rounded shadow">
+        <h1 className="text-xl font-semibold mb-4">Войти</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <p className="text-red-500 text-sm">{error}</p>}
 
-        <div>
-          <label className="block text-sm">Почта</label>
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            autoComplete="email"
-          />
-        </div>
+          <div>
+            <label className="block text-sm">Почта</label>
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full border px-3 py-2 rounded"
+              autoComplete="email"
+            />
+          </div>
 
-        <div>
-          <label className="block text-sm">Пароль</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border px-3 py-2 rounded"
-            autoComplete="current-password"
-          />
-        </div>
+          <div>
+            <label className="block text-sm">Пароль</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border px-3 py-2 rounded"
+              autoComplete="current-password"
+            />
+          </div>
 
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-60"
-            disabled={loading}
-          >
-            {loading ? "Входим..." : "Войти"}
-          </button>
-        </div>
-      </form>
-    </div>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-60"
+              disabled={loading}
+            >
+              {loading ? "Входим..." : "Войти"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </>
   );
 }

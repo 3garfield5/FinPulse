@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Message from "../components/Message";
+import SeoHead from "../components/SeoHead";
 import {
   initUpload,
   completeUpload,
@@ -297,7 +298,14 @@ export default function Chat() {
   }
 };
   return (
-    <div className="grid md:grid-cols-3 gap-8">
+    <>
+      <SeoHead
+        title="Чат с AI | FinPulse"
+        description="Закрытый раздел личного чата с AI-ассистентом FinPulse."
+        canonicalPath="/chat"
+        noindex
+      />
+      <div className="grid md:grid-cols-3 gap-8">
       {/* Левая часть: чат */}
       <div className="md:col-span-2 bg-white p-4 rounded shadow h-[68vh] flex flex-col">
         {/* Header: текущий чат + быстрые действия */}
@@ -461,6 +469,7 @@ export default function Chat() {
           })}
         </div>
       </aside>
-    </div>
+      </div>
+    </>
   );
 }

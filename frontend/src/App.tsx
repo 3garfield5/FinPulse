@@ -3,15 +3,18 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Chat from "./pages/Chat";
 import News from "./pages/News";
+import PublicNews from "./pages/PublicNews";
+import PublicNewsItem from "./pages/PublicNewsItem";
+import MoexMarket from "./pages/MoexMarket";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import AdminUsers from "./pages/AdminUsers";
 import FilesPage from "./pages/Files";
+import NotFound from "./pages/NotFound";
 
 import Navbar from "./components/Navbar";
-import { AuthProvider } from "./context/AuthContext";
-import { RequirePermission, RequireRole } from "./context/guards";
+import { RequirePermission } from "./context/guards";
 
 function Forbidden() {
   return <div className="max-w-xl mx-auto bg-white p-6 rounded shadow">403 Forbidden</div>;
@@ -19,7 +22,7 @@ function Forbidden() {
 
 export default function App() {
   return (
-    <AuthProvider>
+    <>
       <Navbar />
       <main className="p-6">
         <Routes>
@@ -28,6 +31,9 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/403" element={<Forbidden />} />
+          <Route path="/news/public" element={<PublicNews />} />
+          <Route path="/news/public/:slug" element={<PublicNewsItem />} />
+          <Route path="/market/moex" element={<MoexMarket />} />
 
           <Route
             path="/chat"
@@ -80,8 +86,9 @@ export default function App() {
               </RequirePermission>
             }
           />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-    </AuthProvider>
+    </>
   );
 }

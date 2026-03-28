@@ -11,6 +11,13 @@ from app.infrastructure.database.news_cache_repo_impl import NewsCacheRepoSQL
 from app.infrastructure.database.user_repo_impl import UserRepositorySQL
 from app.infrastructure.llm.ollama_llm_service import OllamaLLMService
 from app.infrastructure.llm.scraper_service import ScraperService
+from app.application.use_cases.public_news.public_news import (
+    GetPublicNewsFeed,
+    GetPublicNewsItem,
+    GetPublicNewsItemBySlug,
+)
+from app.infrastructure.database.news_repo_impl import NewsRepositorySQL
+from app.infrastructure.moex.moex_service import MoexService
 
 
 def get_user_repo() -> IUserRepository:
@@ -44,13 +51,39 @@ def get_chat_use_case(
     return ChatWithLLM(llm=llm, chat_repo=repo)
 
 
+def get_file_repo() -> FileRepositorySQL:
+    return FileRepositorySQL()
+
+
+def get_news_repo() -> NewsRepositorySQL:
+    return NewsRepositorySQL()
+
+
+def get_moex_service() -> MoexService:
+    return MoexService()
+
+
 def get_news_feed_use_case(
     scraper: ScraperService = Depends(get_scraper),
     llm=Depends(get_llm_service),
     cache_repo: NewsCacheRepoSQL = Depends(get_news_cache_repo),
+    news_repo: NewsRepositorySQL = Depends(get_news_repo),
 ) -> GetNewsFeed:
-    return GetNewsFeed(scraper=scraper, llm=llm, cache_repo=cache_repo)
+    return GetNewsFeed(scraper=scraper, llm=llm, cache_repo=cache_repo, news_repo=news_repo)
 
 
-def get_file_repo() -> FileRepositorySQL:
-    return FileRepositorySQL()
+def get_public_news_feed_use_case(
+    repo: NewsRepositorySQL = Depends(get_news_repo),
+    generator: GetNewsFeed = Depends(get_news_feed_use_case),
+) -> GetPublicNewsFeed:
+    return GetPublicNewsFeed(repo, generator)
+
+
+def get_public_news_item_use_case(repo: NewsRepositorySQL = Depends(get_news_repo)) -> GetPublicNewsItem:
+    return GetPublicNewsItem(repo)
+
+
+def get_public_news_item_by_slug_use_case(
+    repo: NewsRepositorySQL = Depends(get_news_repo),
+) -> GetPublicNewsItemBySlug:
+    return GetPublicNewsItemBySlug(repo)
