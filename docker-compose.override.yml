@@ -1,0 +1,24 @@
+services:
+  s3:
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+
+  ollama:
+    ports:
+      - "11434:11434"
+
+  db:
+    ports:
+      - "5432:5432"
+
+  backend:
+    command: ["python", "-m", "uvicorn", "app.presentation.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+
+  frontend:
+    ports:
+      - "3000:80"

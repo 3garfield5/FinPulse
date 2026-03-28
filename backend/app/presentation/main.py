@@ -1,7 +1,9 @@
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.settings import settings
 from app.infrastructure.database.base import Base, engine
@@ -61,3 +63,18 @@ app.include_router(seo_router)
 @app.get("/")
 def root():
     return {"message": "Welcome to FinPulse API"}
+
+
+@app.get("/healthz", tags=["Health"])
+def healthz():
+    return {"status": "ok"}
+
+
+@app.get("/readyz", tags=["Health"])
+def readyz():
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return {"status": "ready"}
+    except SQLAlchemyError:
+        raise HTTPException(status_code=503, detail="not_ready")

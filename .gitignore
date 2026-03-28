@@ -2,6 +2,9 @@
 backend/.env
 backend/venv
 .env
+.env.*
+!.env.example
+!.env.prod.example
 
 # Python cache / artifacts
 __pycache__/
@@ -24,3 +27,6 @@ frontend/dist/
 
 # OS/editor
 .DS_Store
+
+# docs
+docs
