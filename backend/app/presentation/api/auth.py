@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from jose import JWTError, jwt
@@ -17,6 +17,12 @@ from app.presentation.schemas.auth import LoginIn, RefreshIn, RegisterIn, TokenO
 from app.presentation.schemas.users import UserOut
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
+
+
+def _to_utc(dt: datetime) -> datetime:
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=UTC)
+    return dt.astimezone(UTC)
 
 
 @router.post("/register", response_model=UserOut)
@@ -75,7 +81,7 @@ def refresh_tokens(
     if not user:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
 
-    if not user.refresh_token_expires_at or user.refresh_token_expires_at < datetime.utcnow():
+    if not user.refresh_token_expires_at or _to_utc(user.refresh_token_expires_at) < datetime.now(UTC):
         raise HTTPException(status_code=401, detail="Refresh token expired")
 
     try:

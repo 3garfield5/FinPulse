@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -13,7 +13,7 @@ bearer_scheme = HTTPBearer()
 
 def _create_token(data: dict, expires_delta: timedelta):
     to_encode = data.copy()
-    expire = datetime.utcnow() + expires_delta
+    expire = datetime.now(UTC) + expires_delta
     if "sub" in to_encode:
         to_encode["sub"] = str(to_encode["sub"])
     to_encode.update({"exp": expire})
@@ -32,7 +32,7 @@ def create_refresh_token(user_id: int, email: str):
         {"sub": user_id, "email": email, "type": "refresh"},
         timedelta(days=settings.REFRESH_EXPIRE_DAYS),
     )
-    expires_at = datetime.utcnow() + timedelta(days=settings.REFRESH_EXPIRE_DAYS)
+    expires_at = datetime.now(UTC) + timedelta(days=settings.REFRESH_EXPIRE_DAYS)
     return token, expires_at
 
 
