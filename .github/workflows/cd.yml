@@ -18,9 +18,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare .env for deployment
+        shell: bash
+        env:
+          FINPULSE_ENV: ${{ secrets.FINPULSE_ENV }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${FINPULSE_ENV:-}" ]]; then
+            echo "::error::Missing GitHub secret FINPULSE_ENV. Add full .env content to repository secrets."
+            exit 1
+          fi
+          printf '%s\n' "$FINPULSE_ENV" > .env
+          chmod 600 .env
+
       - name: Deploy locally via Docker Compose
         shell: bash
         run: |
           set -euo pipefail
-          docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --remove-orphans
+          docker compose --env-file .env -f docker-compose.yml -f docker-compose.prod.yml up -d --build --remove-orphans
           docker image prune -f
