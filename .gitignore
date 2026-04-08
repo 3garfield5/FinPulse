@@ -30,3 +30,6 @@ frontend/dist/
 
 # docs
 docs
+
+# actions
+actions-runner/
