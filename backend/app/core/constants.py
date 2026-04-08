@@ -32,15 +32,14 @@ TICKER_RE = re.compile(r"^[A-Z0-9\.]{2,12}$")
 NEWS_SOURCES: Dict[str, Dict[str, List[str]]] = {
     MARKET_RU: {
         CATEGORY_MACRO: [
-            "https://www.rbc.ru/economics/",
-            "https://www.vedomosti.ru/rubrics/economics",
             "https://www.cbr.ru/press/",
             "https://minfin.gov.ru/ru/press-center/",
+            "https://www.rbc.ru/economics/",
         ],
         CATEGORY_STOCKS: [
-            "https://www.rbc.ru/finances/",
-            "https://www.vedomosti.ru/finance",
             "https://www.moex.com/ru/news/",
+            "https://www.rbc.ru/finances/",
+            "https://www.interfax.ru/business/",
         ],
     }
 }

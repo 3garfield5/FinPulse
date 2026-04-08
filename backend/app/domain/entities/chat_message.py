@@ -9,3 +9,4 @@ class ChatMessage:
     role: str  # 'user' | 'FinPulse'
     content: str
     timestamp: datetime
+    chat_id: int | None = None

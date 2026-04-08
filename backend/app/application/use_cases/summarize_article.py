@@ -252,18 +252,25 @@ class GetNewsFeed:
                     reason="Сервис аналитики временно недоступен",
                 )
 
+        is_fallback = bool(payload.get("_fallback"))
         payload_json = json.dumps(payload, ensure_ascii=False)
-        self.cache_repo.upsert(
-            cache_date=today,
-            market=market,
-            category=cache_category,
-            url=url,
-            source=source_name,
-            title=title,
-            payload_json=payload_json,
-        )
 
-        if audience == "public":
+        # Для personal сохраняем даже fallback, чтобы не дергать тяжёлую генерацию на каждый рефреш.
+        # Для public fallback не кэшируем, чтобы витрина быстрее самовосстанавливалась.
+        should_cache = (not is_fallback) or audience == "personal"
+        if should_cache:
+            self.cache_repo.upsert(
+                cache_date=today,
+                market=market,
+                category=cache_category,
+                url=url,
+                source=source_name,
+                title=title,
+                payload_json=payload_json,
+            )
+
+        # Публичную витрину обновляем только валидным контентом, чтобы не затирать рабочие карточки fallback-ом.
+        if audience == "public" and not is_fallback:
             self.news_repo.upsert_by_url(
                 url=url,
                 title=title,

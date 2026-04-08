@@ -29,10 +29,17 @@ class ChatWithLLM:
 
         prompt = build_chat_context(history)
 
-        response_text = self.llm.chat(
-            prompt=prompt,
-            user_context={"user_id": user_id, "chat_id": chat_id},
-        )
+        try:
+            response_text = self.llm.chat(
+                prompt=prompt,
+                user_context={"user_id": user_id, "chat_id": chat_id},
+            )
+        except Exception:
+            # Не роняем endpoint, если LLM недоступна или отвечает слишком долго.
+            response_text = (
+                "Сервис модели сейчас перегружен или недоступен. "
+                "Попробуй отправить сообщение еще раз через минуту."
+            )
 
         self.chat_repo.add_message(
             ChatMessage(
