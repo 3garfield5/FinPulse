@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import logging
 import re
 from datetime import date, datetime, timezone
-import hashlib
-import logging
 from typing import List, Optional
 from urllib.parse import urlparse
 
@@ -18,27 +18,15 @@ from app.core.constants import (
 from app.domain.entities.news_block import NewsBlock, NewsIndicator
 from app.domain.entities.user import User
 from app.infrastructure.database.news_cache_repo_impl import NewsCacheRepoSQL
-from app.infrastructure.llm.scraper_service import ScraperService
 from app.infrastructure.database.news_repo_impl import NewsRepositorySQL
+from app.infrastructure.llm.scraper_service import ScraperService
 from app.infrastructure.utils import slugify
 
 _WS_RE = re.compile(r"\s+")
 
 _ALLOWED_IMPACT = {"positive", "neutral", "negative"}
 _ALLOWED_CONFIDENCE = {"low", "medium", "high"}
-
-import re
-
-_SLUG_RE = re.compile(r"[^a-zа-я0-9\s-]+", re.IGNORECASE)
-_WS_RE2 = re.compile(r"\s+")
 logger = logging.getLogger(__name__)
-
-def slugify(text: str) -> str:
-    t = (text or "").strip().lower()
-    t = _SLUG_RE.sub("", t)
-    t = _WS_RE2.sub("-", t)
-    t = re.sub(r"-+", "-", t)
-    return t.strip("-") or "news"
 
 
 def _clean_and_truncate(text: str, max_chars: int = 8000) -> str:
@@ -108,6 +96,7 @@ class GetNewsFeed:
     ) -> list[tuple[str, str, str]]:
         picked: list[tuple[str, str, str]] = []
         market_sources = NEWS_SOURCES.get(MARKET_RU, {})
+
         def _prefer_scrape_friendly(urls: list[str]) -> list[str]:
             non_rbc = [u for u in urls if "rbc.ru" not in u]
             return non_rbc or urls
@@ -143,7 +132,10 @@ class GetNewsFeed:
         focus = (
             "Фокус: макро РФ (ставки, инфляция, бюджет, санкции, нефть как фактор для РФ, влияние на рынок акций)."
             if category == CATEGORY_MACRO
-            else "Фокус: корпоративные новости РФ (отчетности, дивиденды, сделки, регулирование, сектора и крупные эмитенты)."
+            else (
+                "Фокус: корпоративные новости РФ (отчетности, дивиденды, сделки, "
+                "регулирование, сектора и крупные эмитенты)."
+            )
         )
         persona_hint = ""
         if audience == "personal" and user is not None:

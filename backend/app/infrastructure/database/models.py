@@ -11,7 +11,7 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     func,
-    Index
+    Index,
 )
 
 from app.core.constants import MARKET_RU
@@ -138,6 +138,7 @@ class FileModel(Base):
 
     is_ready = Column(Boolean, nullable=False, server_default="false")
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+
 
 class News(Base):
     __tablename__ = "news"

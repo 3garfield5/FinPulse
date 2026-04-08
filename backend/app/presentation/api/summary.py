@@ -1,5 +1,4 @@
 from typing import List
-import re
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -9,7 +8,7 @@ from app.infrastructure.dependencies import get_news_feed_use_case, get_user_rep
 from app.infrastructure.security.auth_jwt import get_current_user
 from app.infrastructure.security.authz import require_permissions
 from app.presentation.schemas.summary import NewsBlockOut, NewsIndicatorOut
-from app.infrastructure.utils import slugify 
+from app.infrastructure.utils import slugify
 
 router = APIRouter(prefix="/news", tags=["News"])
 
@@ -51,6 +50,7 @@ def get_personal_news_feed(
 
     blocks = use_case.execute(user, force=force)
     return [to_news_block_out(b) for b in blocks]
+
 
 @router.get(
     "/{news_id}",

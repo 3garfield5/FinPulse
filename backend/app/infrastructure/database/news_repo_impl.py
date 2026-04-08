@@ -1,12 +1,15 @@
-from datetime import date
 import json
-from sqlalchemy.orm import sessionmaker
-from typing import List, Optional
 from dataclasses import dataclass
-from app.presentation.schemas.summary import NewsBlockOut, NewsIndicatorOut
-from app.infrastructure.database.models import News 
-from app.infrastructure.utils import slugify 
+from datetime import date
+from typing import List, Optional
+
+from sqlalchemy.orm import sessionmaker
+
 from app.infrastructure.database.base import SessionLocal
+from app.infrastructure.database.models import News
+from app.infrastructure.utils import slugify
+from app.presentation.schemas.summary import NewsBlockOut, NewsIndicatorOut
+
 
 @dataclass
 class NewsRow:
@@ -21,6 +24,7 @@ class NewsRow:
     category: Optional[str]
     is_public: bool
 
+
 class NewsRepositorySQL:
     def __init__(self, session_factory: sessionmaker = SessionLocal):
         self._session_factory = session_factory
@@ -29,7 +33,7 @@ class NewsRepositorySQL:
         with self._session_factory() as session:
             return (
                 session.query(News)
-                .filter(News.is_public == True)
+                .filter(News.is_public.is_(True))
                 .order_by(News.id.desc())
                 .limit(limit)
                 .all()
@@ -40,7 +44,7 @@ class NewsRepositorySQL:
             return (
                 session.query(News)
                 .filter(News.id == news_id)
-                .filter(News.is_public == True)
+                .filter(News.is_public.is_(True))
                 .one_or_none()
             )
 
@@ -83,8 +87,7 @@ class NewsRepositorySQL:
             indicator=indicator,
             asof=b.asof,
         )
-    
-    
+
     def upsert_by_url(
         self,
         *,
@@ -145,7 +148,7 @@ class NewsRepositorySQL:
             return (
                 session.query(News)
                 .filter(News.slug == slug)
-                .filter(News.is_public == True)
+                .filter(News.is_public.is_(True))
                 .order_by(News.id.desc())
                 .first()
             )
